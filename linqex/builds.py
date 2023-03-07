@@ -49,17 +49,17 @@ def first(iterable:Iterable, func:Callable[[_Key,_Value],bool]=lambda key, value
     for key, value in iterable.items():
         if func(key, value):
             return (key,value)
-    return (None,None)
+    return None
 def last(iterable:Iterable, func:Callable[[_Key,_Value],bool]=lambda key, value: True) -> Optional[Tuple[_Key,_Value]]:
     result = where(iterable, func, getkey=True)
     if len(result) == 0:
-        return (None,None)
+        return None
     else:
         return list(result.items())[-1]
 def single(iterable:Iterable, func:Callable[[_Key,_Value],bool]=lambda key, value: True) -> Optional[Tuple[_Key,_Value]]:
     result = where(iterable, func, getkey=True)
     if len(result) != 1:
-        return (None,None)
+        return None
     else:
         return list(result.items())[0]
 def orderby(iterable:Iterable[str], func:Callable[[_Key,_Value],bool]=lambda key, value: value, desc:bool=False) -> Iterable:

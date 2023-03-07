@@ -1,13 +1,16 @@
 from typing import Callable, Iterable, Optional, Tuple, Union, Type, overload
 from linqex.builds import *
 
-version = '1.2'
+version = '1.2.1'
 
 def enumerable_catch(linq:"Enumerable",iterable:Iterable, items:bool=False, onevalue:bool=False) -> Union["Enumerable",Iterable]:
     if items:
-        new_enumerable = Enumerable(iterable[1] if isinstance(iterable[1], (dict,list)) and not onevalue else [iterable[1]])
-        new_enumerable.keys_history = linq.keys_history.copy()
-        new_enumerable.keys_history.append(iterable[0])
+        if iterable is None:
+            return None
+        else:
+            new_enumerable = Enumerable(iterable[1] if isinstance(iterable[1], (dict,list)) and not onevalue else [iterable[1]])
+            new_enumerable.keys_history = linq.keys_history.copy()
+            new_enumerable.keys_history.append(iterable[0])
     else:
         new_enumerable = Enumerable(iterable)
         new_enumerable.keys_history = linq.keys_history.copy()
