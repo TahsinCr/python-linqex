@@ -199,3 +199,6 @@ print(result14.toValue, end="\n"*2)
 #    <__main__.Customer object at 0x0000027A67B9BF10>, <__main__.Customer object at 0x0000027A67B9BF50>, <__main__.Customer object at 0x0000027A67B9BF90>, 
 #    <__main__.Customer object at 0x0000027A67B9BFD0>, <__main__.Customer object at 0x0000027A67BC0050>, <__main__.Customer object at 0x0000027A67BC0090>
 # ]
+
+result15 = customer_enumerable.lenght # Returns length of iterable
+print(result15, end="\n"*2)

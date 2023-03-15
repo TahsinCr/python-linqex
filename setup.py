@@ -8,7 +8,7 @@ with open('README.rst', 'r', encoding='utf-8') as file:
 LONG_DESCRIPTION_CONTENT_TYPE = "text/markdown"
 
 NAME = 'linqex'
-VERSION = '1.2.1'
+VERSION = '1.2.2'
 DESCRIPTION = 'The linq module in C# has been adapted for python with some modifications.'
 URL = 'https://github.com/TahsinCr/python-linqex'
 AUTHOR = 'TahsinCr'

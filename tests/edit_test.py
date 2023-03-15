@@ -33,7 +33,8 @@ customer_enumerable = Enumerable(customer_list)
 
 new_customer = Customer(id=13,name="John",age=44,gender=MALE)
 customer_enumerable.add(new_customer) # Adds the new customer to iterable.
-result = customer_enumerable.first(lambda index, customer: customer.id == 13).toValue._toDict()
+result = customer_enumerable.first(lambda index, customer: customer.id == 13)
+if result is not None: result = result.toValue._toDict()
 print(result, end="\n"*2)
 #--Result :
 # {'id': 13, 'name': 'John', 'age': 44, 'gender': 'MALE'}
@@ -42,42 +43,53 @@ print(result, end="\n"*2)
 new_customer = Customer(id=4,name="Jack",age=29,gender=MALE)
 customer_enumerable.update(customer_enumerable.first(lambda index, customer: customer.id == 4).toKey, new_customer) # Replaces the given value with the selected value (Updates the value).
 # customer_enumerable.first(lambda index, customer: customer.id == 4).set(new_customer) # It does the same as the 'update()' method above.
-result2 = customer_enumerable.first(lambda index, customer: customer.id == 4).toValue._toDict()
+result2 = customer_enumerable.first(lambda index, customer: customer.id == 4)
+if result2 is not None: result2 = result2.toValue._toDict()
 print(result2, end="\n"*2)
 #--Result :
 # {'id': 4, 'name': 'Jack', 'age': 29, 'gender': 'MALE'}
 
 
-new_customers = [Customer(id=14,name="Jack",age=29,gender=MALE),Customer(id=15,name="Jack",age=29,gender=MALE)]
+new_customers = [Customer(id=14,name="Frank",age=16,gender=MALE),Customer(id=15,name="Gregor",age=10,gender=MALE)]
 customer_enumerable.union(new_customers) # Expands with new customers list.
 result3 = customer_enumerable.toValue
 print([c._toDict() for c in result3], end="\n"*2)
 #--Result :
 # [
-#     {'id': 1, 'name': 'Ava', 'age': 32, 'gender': 'MALE'}, {'id': 2, 'name': 'Alex', 'age': 19, 'gender': 'MALE'}, {'id': 3, 'name': 'Amelia', 'age': 22, 'gender': 'FEMALE'}, 
-#     {'id': 4, 'name': 'Jack', 'age': 29, 'gender': 'MALE'}, {'id': 5, 'name': 'Eric', 'age': 55, 'gender': 'MALE'}, {'id': 6, 'name': 'Lily', 'age': 12, 'gender': 'FEMALE'}, 
-#     {'id': 7, 'name': 'Jessia', 'age': 32, 'gender': 'MALE'}, {'id': 8, 'name': 'William', 'age': 19, 'gender': 'MALE'}, {'id': 9, 'name': 'Emily', 'age': 22, 'gender': 'FEMALE'}, 
-#     {'id': 10, 'name': 'Mateo', 'age': 43, 'gender': 'MALE'}, {'id': 11, 'name': 'Antony', 'age': 55, 'gender': 'MALE'}, {'id': 12, 'name': 'Mia', 'age': 12, 'gender': 'FEMALE'}, 
-#     {'id': 13, 'name': 'John', 'age': 44, 'gender': 'MALE'}, {'id': 14, 'name': 'Jack', 'age': 29, 'gender': 'MALE'}, {'id': 15, 'name': 'Jack', 'age': 29, 'gender': 'MALE'}
+#     {'id': 1, 'name': 'Ava', 'age': 32, 'gender': 'MALE'}, {'id': 2, 'name': 'Alex', 'age': 19, 'gender': 'MALE'}, {'id': 3, 'name': 'Amelia', 'age': 22, 'gender': 'FEMALE'},
+#     {'id': 4, 'name': 'Jack', 'age': 29, 'gender': 'MALE'}, {'id': 5, 'name': 'Eric', 'age': 55, 'gender': 'MALE'}, {'id': 6, 'name': 'Lily', 'age': 12, 'gender': 'FEMALE'},
+#     {'id': 7, 'name': 'Jessia', 'age': 32, 'gender': 'MALE'}, {'id': 8, 'name': 'William', 'age': 19, 'gender': 'MALE'}, {'id': 9, 'name': 'Emily', 'age': 22, 'gender': 'FEMALE'},
+#     {'id': 10, 'name': 'Mateo', 'age': 43, 'gender': 'MALE'}, {'id': 11, 'name': 'Antony', 'age': 55, 'gender': 'MALE'}, {'id': 12, 'name': 'Mia', 'age': 12, 'gender': 'FEMALE'},
+#     {'id': 13, 'name': 'John', 'age': 44, 'gender': 'MALE'}, {'id': 14, 'name': 'Frank', 'age': 16, 'gender': 'MALE'}, {'id': 15, 'name': 'Gregor', 'age': 10, 'gender': 'MALE'}
 # ]
 
 
 customer_enumerable.delete(customer_enumerable.first(lambda index, customer: customer.id == 13).toKey) # Deletes data with given key value from iterable.
-result4 = customer_enumerable.first(lambda index, customer: customer.id == 13).toValue
+result4 = customer_enumerable.first(lambda index, customer: customer.id == 13)
+if result4 is not None: result4 = result4.toValue
 print(result4, end="\n"*2)
 #--Result :
 # None
 
 
-customer_enumerable.remove(customer_enumerable.first(lambda index, customer: customer.id == 12).toValue) # Deletes given data from iterable.
-result5 = customer_enumerable.first(lambda index, customer: customer.id == 12).toValue
+customer_enumerable.first(lambda index, customer: customer.id == 12).delete() # Deletes the current value from the iterable.
+result5 = customer_enumerable.first(lambda index, customer: customer.id == 12)
+if result5 is not None: result5 = result5.toValue
 print(result5, end="\n"*2)
 #--Result :
 # None
 
 
-customer_enumerable.insets(lambda index, customer: customer.age) # If the value is iterable change the values ​​in it as desired.
-result6 = customer_enumerable.toValue
+customer_enumerable.remove(customer_enumerable.first(lambda index, customer: customer.id == 11).toValue) # Deletes given data from iterable.
+result6 = customer_enumerable.first(lambda index, customer: customer.id == 11)
+if result6 is not None: result6 = result6.toValue
 print(result6, end="\n"*2)
 #--Result :
-# [32, 19, 22, 29, 55, 12, 32, 19, 22, 43, 55, 29, 29]
+# None
+
+
+customer_enumerable.insets(lambda index, customer: customer.age) # If the value is iterable change the values ​​in it as desired.
+result7 = customer_enumerable.toValue
+print(result7, end="\n"*2)
+#--Result :
+# [32, 19, 22, 29, 55, 12, 32, 19, 22, 43, 16, 10]

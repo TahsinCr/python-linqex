@@ -75,7 +75,7 @@ def todict(iterable:Iterable) -> dict:
 def any(iterable:Iterable, func:Callable[[_Key,_Value],bool]=lambda key, value: True) -> bool:
     result = False
     iterable = todict(iterable)
-    for key, value in iterable.items():
+    for key, value in get_items(iterable):
         if func(key, value):
             result = True
             break
@@ -83,7 +83,7 @@ def any(iterable:Iterable, func:Callable[[_Key,_Value],bool]=lambda key, value: 
 def all(iterable:Iterable, func:Callable[[_Key,_Value],bool]=lambda key, value: True) -> bool:
     result = True
     iterable = todict(iterable)
-    for key, value in iterable.items():
+    for key, value in get_items(iterable):
         if not func(key, value):
             result = False
             break
@@ -91,31 +91,36 @@ def all(iterable:Iterable, func:Callable[[_Key,_Value],bool]=lambda key, value: 
 def isempty(iterable:Iterable) -> bool:
     return iterable in [[],{},None]
 
-def count(iterable:Iterable, value:_Value) -> int:
+def count(iterable:Iterable, value:_Value, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> int:
+    iterable = ingets(iterable, func)
     if isinstance(iterable, dict):
         return list(iterable.values()).count(value)
     else:
         return iterable.count(value)      
 def lenght(iterable:Iterable) -> int:
-    return len(iterable) 
-def sum(iterable:Iterable[int]) -> Optional[int]:
+    return len(iterable)
+def summation(iterable:Iterable[int], func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
+    iterable = ingets(iterable, func)
     if all(iterable,lambda k,v: isinstance(v,(int,float))):
         iterable = get_values(iterable)
         return sum(iterable)
     else:
         return None
-def avg(iterable:Iterable[int]) -> Optional[int]:
+def average(iterable:Iterable[int], func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
+    iterable = ingets(iterable, func)
     if all(iterable,lambda k,v: isinstance(v,(int,float))):
-        return sum(iterable) / len(iterable)
+        return sum(iterable) / lenght(iterable)
     else:
         return None
-def max(iterable:Iterable[int]) -> Optional[int]:
+def maximum(iterable:Iterable[int], func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
+    iterable = ingets(iterable, func)
     if all(iterable,lambda k,v: isinstance(v,(int,float))):
         iterable = get_values(iterable)
         return max(iterable)
     else:
         return None
-def min(iterable:Iterable[int]) -> Optional[int]:
+def minimum(iterable:Iterable[int], func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
+    iterable = ingets(iterable, func)
     if all(iterable,lambda k,v: isinstance(v,(int,float))):
         iterable = get_values(iterable)
         return min(iterable)
@@ -174,13 +179,11 @@ def insets(iterable:Iterable, func:Callable[[_Key,_Value],_Value]=lambda key, va
 @overload
 def insets(iterable:Iterable, func:Callable[[_Key,_Value],_Value]=lambda key, value: value, key_func:Callable[[_Key,_Value],_Value]=lambda key, value: key) -> Iterable: ...
 def insets(iterable:Iterable, f1=lambda k,v: v, f2=...):
+    new_iterable = ingets(iterable, f1, f2)
+    iterable.clear()
     if isinstance(iterable, dict):
-        new_iterable = dict(zip((iterable.keys() if f2 is ... else map(f2,iterable.keys(),iterable.values())),map(f1,iterable.keys(),iterable.values())))
-        iterable.clear()
         iterable.update(new_iterable)
     else:
-        new_iterable = list(map(f1,range(len(iterable)),iterable))
-        iterable.clear()
         iterable.extend(new_iterable)
 
 __all__ = [
@@ -189,7 +192,7 @@ __all__ = [
     "where", "first", "last", "single", "oftype",
     "any", "all", "isempty",
     "tolist", "todict",
-    "count", "lenght", "avg", "max", "min", "orderby",
+    "count", "lenght", "summation", "average", "maximum", "minimum", "orderby",
     "add", "update", "union", "delete", "remove", "clear",
     "ingets", "insets"
 ]

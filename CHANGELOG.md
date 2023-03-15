@@ -1,6 +1,13 @@
 # **Change Log**
 All notable changes to this project will be documented in this file.
 
+## **[1.2.2] - 15.03.2023**
+build.py and linq.py edited
+### Edited
+ * 'Linq(iterable).delete()', 'lenght' in 'linq.py' and 'count', 'summation', 'average', 'maximum', 'minimum', 'any', 'all' in 'build.py' functions edited and tested.
+
+<br>
+
 ## **[1.2.1] - 07.03.2023**
 build.py and linq.py edited
 ### Edited

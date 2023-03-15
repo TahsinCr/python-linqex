@@ -98,18 +98,21 @@ print(result4, end="\n"*2)
 # }
 
 
-result5 = customer_enumerable.first(lambda key, customer: customer.gender == FEMALE).toValue # Loops the iterable and returns the first value that satisfies the given condition.
+result5 = customer_enumerable.first(lambda key, customer: customer.gender == FEMALE) # Loops the iterable and returns the first value that satisfies the given condition.
+if result5 is not None: result5 = result5.toValue
 print(result5.name, end="\n"*2)
 #--Result :
 # Amelia
 
-result6 = customer_enumerable.last(lambda key, customer: customer.gender == FEMALE).toValue # Loops the iterable and returns the last value satisfying the given condition.
+result6 = customer_enumerable.last(lambda key, customer: customer.gender == FEMALE) # Loops the iterable and returns the last value satisfying the given condition.
+if result6 is not None: result6 = result6.toValue
 print(result6.name, end="\n"*2)
 #--Result :
 # Mia
 
 
-result7 = customer_enumerable.single(lambda key, customer: customer.gender == FEMALE).toValue # Loops the iterable and returns a value that satisfies the given condition. Returns None if more than one value satisfies the given condition.
+result7 = customer_enumerable.single(lambda key, customer: customer.gender == FEMALE) # Loops the iterable and returns a value that satisfies the given condition. Returns None if more than one value satisfies the given condition.
+if result7 is not None: result7 = result7.toValue
 print(result7, end="\n"*2)
 #--Result :
 # None
@@ -130,3 +133,41 @@ print(result8, end="\n"*2)
 #     <__main__.Customer object at 0x000001EBB7CB4210>, <__main__.Customer object at 0x000001EBB7CB4310>, <__main__.Customer object at 0x000001EBB7CB4250>, 
 #     <__main__.Customer object at 0x000001EBB7CB74D0>, <__main__.Customer object at 0x000001EBB7CB7590>, <__main__.Customer object at 0x000001EBB7CB4290>
 # ]
+
+
+result9 = customer_enumerable.count(FEMALE, lambda index, customer: customer.gender) # Returns number of values given for iterable
+print(result9, end="\n"*2)
+#--Result :
+# None
+
+
+result10 = customer_enumerable.sum(lambda index, customer: customer.age) # Returns average of iterable numbers.
+print(result10, end="\n"*2)
+#--Result :
+# None
+
+result11 = customer_enumerable.avg(lambda index, customer: customer.age)  # Returns number of values given for iterable
+print(result11, end="\n"*2)
+#--Result :
+# None
+
+result12 = customer_enumerable.max(lambda index, customer: customer.age)  # Returns largest of numbers in iterable
+print(result12, end="\n"*2)
+#--Result :
+# None
+
+result13 = customer_enumerable.min(lambda index, customer: customer.age)  # Returns smallest of numbers in iterable
+print(result13, end="\n"*2)
+#--Result :
+# None
+
+
+result14 = customer_enumerable.any(lambda index, customer: customer.age < 18) # Loops iterable and returns True if given conditions are met for at least 1 value.
+print(result14, end="\n"*2)
+#--Result :
+# None
+
+result15 = customer_enumerable.all(lambda index, customer: customer.age < 18) # Loops iterable and returns True if given conditions are met for all values.
+print(result15, end="\n"*2)
+#--Result :
+# None

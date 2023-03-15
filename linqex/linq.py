@@ -3,7 +3,7 @@ from linqex.builds import *
 
 version = '1.2.1'
 
-def enumerable_catch(linq:"Enumerable",iterable:Iterable, items:bool=False, onevalue:bool=False) -> Union["Enumerable",Iterable]:
+def enumerable_catch(linq:"Enumerable",iterable:Iterable, items:bool=False, onevalue:bool=False) -> Optional[Union["Enumerable",Iterable]]:
     if items:
         if iterable is None:
             return None
@@ -75,18 +75,19 @@ class Enumerable:
     def all(self, func:Callable[[_Key,_Value],bool]=lambda key, value: True) -> bool:
         return all(self.iterable,func)
 
-    def count(self, size:_Value) -> int:
-        return count(self.iterable, size)
+    def count(self, size:_Value, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> int:
+        return count(self.iterable, size, func)
+    @property
     def lenght(self) ->  int:
         return lenght(self.iterable)
-    def sum(self) -> Optional[int]:
-        return sum(self.iterable)
-    def avg(self) -> Optional[int]:
-        return avg(self.iterable)
-    def max(self) -> Optional[int]:
-        return max(self.iterable)
-    def min(self) -> Optional[int]:
-        return min(self.iterable)
+    def sum(self, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
+        return summation(self.iterable, func)
+    def avg(self, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
+        return average(self.iterable, func)
+    def max(self, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
+        return maximum(self.iterable, func)
+    def min(self, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
+        return minimum(self.iterable, func)
     
     def set(self, value:_Value):
         value = enumerable_to_value(value)
@@ -107,8 +108,15 @@ class Enumerable:
         update(self.iterable, key, value)
     def union(self, *iterable:Iterable):
         union(self.iterable, *list(map(lambda v: enumerable_to_value(v), list(iterable))))
-    def delete(self, *key:_Key):
-        delete(self.iterable, *key)
+    @overload
+    def delete(self): ...
+    @overload
+    def delete(self, *key:_Key): ...
+    def delete(self, *v1):
+        if v1 == ():
+            self._main.get(*self.keys_history[:len(self.keys_history)-1]).delete(self.toKey)
+        else:
+            delete(self.iterable, *v1)
     def remove(self, *value:_Value, all:bool=False):
         value = enumerable_to_value(value)
         remove(self.iterable, *value, all=all)
