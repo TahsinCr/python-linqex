@@ -1,198 +1,290 @@
-from typing import Iterable, overload, Any, Callable, NoReturn, Optional, Tuple, Union, Type
-_Key = str | int
+from typing import overload, Any, Callable, Union, NoReturn, Optional, Tuple, Type
+
+_Iterable = Union[list,dict]
+_Key = Union[int,Any]
 _Value = Any
+_Temp = _Value
+_Next = _Value
+_Desc = bool
 
-def get_value(iterable:Iterable, *key:_Key) -> _Value:
-    for k in key:
-        if (k < len(iterable) if isinstance(iterable,list) else k in iterable.keys()):
-            iterable = iterable[k]
-        else:
-            raise IndexError()
-    return iterable
-def get_index(iterable:Iterable, value:_Value) -> _Key:
-    if isinstance(iterable, dict):
-        return list(iterable.keys())[list(iterable.values()).index(value)]
-    else:
-        return iterable.index(value)
-def get_keys(iterable:Iterable, *key:_Key) -> list:
-    iterable = get_value(iterable, *key)
-    if isinstance(iterable, dict):
-        return list(iterable.keys())
-    else:
-        return list(range(len(iterable)))
-def get_values(iterable:Iterable, *key:_Key) -> list:
-    iterable = get_value(iterable, *key)
-    if isinstance(iterable, dict):
-        return list(iterable.values())
-    else:
-        return iterable.copy()
-def get_items(iterable:Iterable, *key:_Key) -> list:
-    iterable = get_value(iterable, *key)
-    if isinstance(iterable, dict):
-        return list(iterable.items())
-    else:
-        return list(enumerate(iterable))
 
-def where(iterable:Iterable, func:Callable[[_Key,_Value],bool]=lambda key, value: True, getkey:bool=False) -> Iterable:
-    result = dict()
-    iterable = todict(iterable)
-    for key, value in iterable.items():
-        if func(key, value):
-            result[key] = value
-    if not getkey:
-        result = list(result.values())
-    return result
-def oftype(iterable:Iterable, types:Union[Tuple[Type],Type], getkey:bool=False) -> Iterable:
-    return where(iterable, lambda key,value: isinstance(value,types), getkey)
-def first(iterable:Iterable, func:Callable[[_Key,_Value],bool]=lambda key, value: True) -> Optional[Tuple[_Key,_Value]]:
-    iterable = todict(iterable)
-    for key, value in iterable.items():
-        if func(key, value):
-            return (key,value)
-    return None
-def last(iterable:Iterable, func:Callable[[_Key,_Value],bool]=lambda key, value: True) -> Optional[Tuple[_Key,_Value]]:
-    result = where(iterable, func, getkey=True)
-    if len(result) == 0:
-        return None
-    else:
-        return list(result.items())[-1]
-def single(iterable:Iterable, func:Callable[[_Key,_Value],bool]=lambda key, value: True) -> Optional[Tuple[_Key,_Value]]:
-    result = where(iterable, func, getkey=True)
-    if len(result) != 1:
-        return None
-    else:
-        return list(result.items())[0]
-def orderby(iterable:Iterable[str], func:Callable[[_Key,_Value],bool]=lambda key, value: value, desc:bool=False) -> Iterable:
-    if isinstance(iterable, dict):
-        return dict(sorted(iterable.items(), key=lambda x: func(x[0],x[1]), reverse=desc))
-    else:
-        return list(dict(sorted(enumerate(iterable), key=lambda x: func(x[0],x[1]), reverse=desc)).values())
-def tolist(iterable:Iterable) -> list:
-    return (iterable.copy() if isinstance(iterable, list) else list(iterable.values()))
-def todict(iterable:Iterable) -> dict:
-    return (iterable.copy() if isinstance(iterable, dict) else dict(enumerate(iterable)))
-
-def any(iterable:Iterable, func:Callable[[_Key,_Value],bool]=lambda key, value: True) -> bool:
-    result = False
-    iterable = todict(iterable)
-    for key, value in get_items(iterable):
-        if func(key, value):
-            result = True
-            break
-    return result
-def all(iterable:Iterable, func:Callable[[_Key,_Value],bool]=lambda key, value: True) -> bool:
-    result = True
-    iterable = todict(iterable)
-    for key, value in get_items(iterable):
-        if not func(key, value):
-            result = False
-            break
-    return result
-def isempty(iterable:Iterable) -> bool:
-    return iterable in [[],{},None]
-
-def count(iterable:Iterable, value:_Value, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> int:
-    iterable = ingets(iterable, func)
-    if isinstance(iterable, dict):
-        return list(iterable.values()).count(value)
-    else:
-        return iterable.count(value)      
-def lenght(iterable:Iterable) -> int:
-    return len(iterable)
-def summation(iterable:Iterable[int], func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
-    iterable = ingets(iterable, func)
-    if all(iterable,lambda k,v: isinstance(v,(int,float))):
-        iterable = get_values(iterable)
-        return sum(iterable)
-    else:
-        return None
-def average(iterable:Iterable[int], func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
-    iterable = ingets(iterable, func)
-    if all(iterable,lambda k,v: isinstance(v,(int,float))):
-        return sum(iterable) / lenght(iterable)
-    else:
-        return None
-def maximum(iterable:Iterable[int], func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
-    iterable = ingets(iterable, func)
-    if all(iterable,lambda k,v: isinstance(v,(int,float))):
-        iterable = get_values(iterable)
-        return max(iterable)
-    else:
-        return None
-def minimum(iterable:Iterable[int], func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
-    iterable = ingets(iterable, func)
-    if all(iterable,lambda k,v: isinstance(v,(int,float))):
-        iterable = get_values(iterable)
-        return min(iterable)
-    else:
-        return None
-
-@overload
-def add(iterable:Iterable, value:_Value): ...
-@overload
-def add(iterable:Iterable, key:_Key, value:_Value): ...
-def add(iterable:Iterable, v1, v2=...):
-    if isinstance(iterable, dict):
-        iterable[v1] = (None if v2 is ... else v2)
-    else:
-        if v2 is ...:
-            iterable.append(v1)
-        else:
-            iterable.insert(v1, v2)
-def update(iterable:Iterable, key:_Key, value:_Value):
-    iterable[key] = value
-def union(iterable:Iterable, *new_iterable:Iterable):
-    for new_i in new_iterable:
-        if isinstance(iterable, dict):
-            iterable.update(new_i)
-        else:
-            iterable.extend(new_i)
-def delete(iterable:Iterable, *key:_Key):
-    for k in key:
-        iterable.pop(k)
-def remove(iterable:Iterable, *value:_Value, all:bool=False):
-    for v in value:
-        if isinstance(iterable, dict):
-            iterable.pop(first(iterable, lambda k, va: va == v)[0])
-        else:
-            if all:
-                while True:
-                    if iterable.count(v) == 0:
-                        break
-                    iterable.remove(v)
+class EnumerableBase:
+    def __init__(self, iterable:_Iterable):
+        self.iterable = iterable
+    
+    def Get(self, *key:_Key) -> _Value:
+        iterable = self.iterable
+        for k in key:
+            if (k < len(iterable) if EnumerableBase(iterable).IsType(list) else k in EnumerableBase(iterable).GetKeys()):
+                iterable = iterable[k]
             else:
-                iterable.remove(v)
-def clear(iterable:Iterable):
-    iterable.clear()
+                raise IndexError()
+        return iterable
+    def GetKey(self, value:_Value) -> _Key:
+        if self.IsType(dict):
+            return list(self.GetKeys())[list(self.GetValues()).index(value)]
+        else:
+            return self.iterable.index(value)
+    def GetKeys(self, *key:_Key) -> list:
+        iterable = self.Get(*key)
+        if EnumerableBase(iterable).IsType(dict):
+            return list(iterable.keys())
+        else:
+            return list(range(len(iterable)))
+    def GetValues(self, *key:_Key) -> list:
+        iterable = self.Get(*key)
+        if EnumerableBase(iterable).IsType(dict):
+            return list(iterable.values())
+        else:
+            return iterable
+    def GetItems(self, *key:_Key) -> list:
+        iterable = self.Get(*key)
+        if EnumerableBase(iterable).IsType(dict):
+            return list(iterable.items())
+        else:
+            return list(enumerate(iterable))
+    
+    def Take(self, count:int) -> _Iterable:
+        if self.IsType(dict): 
+            return dict(self.GetItems()[:count])
+        else:
+            return self.iterable[:count]
+    def TakeLast(self, count:int) -> _Iterable:
+        return self.Skip(self.Lenght()-count)
+    def Skip(self, count:int) -> _Iterable:
+        if self.IsType(dict): 
+            return dict(self.GetItems()[count:])
+        else:
+            return self.iterable[count:]
+    def SkipLast(self, count:int) -> _Iterable:
+        return self.Take(self.Lenght()-count)
+    @overload
+    def Select(self, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> _Iterable: ...
+    @overload
+    def Select(self, func:Callable[[_Key,_Value],_Value]=lambda key, value: value, key_func:Callable[[_Key,_Value],_Value]=lambda key, value: key) -> _Iterable: ...
+    def Select(self, f1=lambda k,v: v, f2=...) -> _Iterable:
+        if self.IsType(dict):
+            return dict(zip((self.GetKeys() if f2 is ... else map(f2,self.GetKeys(),self.GetValues())),map(f1,self.GetKeys(),self.GetValues())))
+        else:
+            return list(map(f1,range(self.Lenght()),self.iterable))
+    def Distinct(self, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> _Iterable:
+        new_iterable = self.Copy()
+        index = 0
+        for key, value in self.GetItems():
+            if EnumerableBase(new_iterable).Count(func(key, value), func) > 1:
+                if self.IsType(list):
+                    key -= index
+                EnumerableBase(new_iterable).Delete(key)
+                index += 1
+        return new_iterable
+    def Except(self, *value:_Value, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> _Iterable:
+        new_iterable = self.Copy()
+        for k, v in self.GetItems():
+            if func(k,v) in value:
+                EnumerableBase(new_iterable).Remove(v)
+        return new_iterable
+    def Where(self, func:Callable[[_Key,_Value],bool]=lambda key, value: True, getkey:bool=False) -> _Iterable:
+        result = dict()
+        for key, value in EnumerableBase(self.ToDict()).GetItems():
+            if func(key, value):
+                result[key] = value
+        if not getkey:
+            result = list(result.values())
+        return result
+    def OfType(self, *type:Type, getkey:bool=False) -> _Iterable:
+        return self.Where(lambda key,value: isinstance(value,type), getkey)
+    def First(self, func:Callable[[_Key,_Value],bool]=lambda key, value: True) -> Optional[Tuple[_Key,_Value]]:
+        iterable = EnumerableBase(self.ToDict()).GetItems()
+        for key, value in iterable:
+            if func(key, value):
+                return (key,value)
+        return None
+    def Last(self, func:Callable[[_Key,_Value],bool]=lambda key, value: True) -> Optional[Tuple[_Key,_Value]]:
+        result = self.Where(func, getkey=True)
+        if len(result) == 0:
+            return None
+        else:
+            return list(result.items())[-1]
+    def Single(self, func:Callable[[_Key,_Value],bool]=lambda key, value: True) -> Optional[Tuple[_Key,_Value]]:
+        result = self.Where(func, getkey=True)
+        if len(result) != 1:
+            return None
+        else:
+            return list(result.items())[0]
+    def Join(self, iterable:_Iterable, inner:Callable[[_Key,_Value],bool]=lambda key, value: value, outer:Callable[[_Key,_Value],bool]=lambda key, value: value, func:Callable[[_Key,_Value,_Key,_Value],bool]=lambda inner, outher: (inner, outher))  -> list:
+        new_iterable = []
+        for outKey, outValue in EnumerableBase(iterable).GetItems():
+            new_iterable.append((self.First(lambda inKey, inValue: outer(outKey, outValue) == inner(inKey, inValue))[1], outValue))
+        return EnumerableBase(new_iterable).Select(lambda key, value: func(value[0], value[1]))           
+    def OrderBy(self, *func:Callable[[[_Key,_Value],_Value],_Desc]) -> _Iterable:
+        if func == ():
+            func = (lambda key, value: value)
+        iterable = self.GetItems()
+        func:list = list(func)
+        func.reverse()
+        for f, desc in func:
+            iterable = sorted(iterable, key=lambda x: f(x[0],x[1]), reverse=desc)
+        if EnumerableBase(iterable).IsType(dict):
+            return dict(iterable)
+        else:
+            return list(dict(iterable).values())
+    def Reverse(self) -> _Iterable:
+        if self.IsType(dict):
+            return dict(EnumerableBase(self.GetKeys().reverse()).Zip(self.GetValues().reverse()))
+        else:
+            return list(reversed(self.iterable))
+    def Zip(self, iterable:_Iterable, func:Callable[[_Key,_Value,_Key,_Value],_Value]=lambda key, value, newKey, newValue: (value, newValue)) -> list:
+        return EnumerableBase(list(zip(self.GetItems(),EnumerableBase(iterable).GetItems()))).Select(lambda index, value: func(value[0][0],value[0][1],value[1][0],value[1][1]))
 
-@overload
-def ingets(iterable:Iterable, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Iterable: ...
-@overload
-def ingets(iterable:Iterable, func:Callable[[_Key,_Value],_Value]=lambda key, value: value, key_func:Callable[[_Key,_Value],_Value]=lambda key, value: key) -> Iterable: ...
-def ingets(iterable:Iterable, f1=lambda k,v: v, f2=...) -> Iterable:
-    if isinstance(iterable, dict):
-        return dict(zip((iterable.keys() if f2 is ... else map(f2,iterable.keys(),iterable.values())),map(f1,iterable.keys(),iterable.values())))
-    else:
-        return list(map(f1,range(len(iterable)),iterable))
-@overload
-def insets(iterable:Iterable, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Iterable: ...
-@overload
-def insets(iterable:Iterable, func:Callable[[_Key,_Value],_Value]=lambda key, value: value, key_func:Callable[[_Key,_Value],_Value]=lambda key, value: key) -> Iterable: ...
-def insets(iterable:Iterable, f1=lambda k,v: v, f2=...):
-    new_iterable = ingets(iterable, f1, f2)
-    iterable.clear()
-    if isinstance(iterable, dict):
-        iterable.update(new_iterable)
-    else:
-        iterable.extend(new_iterable)
+    def Any(self, func:Callable[[_Key,_Value],bool]=lambda key, value: True) -> bool:
+        result = False
+        iterable = EnumerableBase(self.ToDict()).GetItems()
+        for key, value in iterable:
+            if func(key, value):
+                result = True
+                break
+        return result
+    def All(self, func:Callable[[_Key,_Value],bool]=lambda key, value: True) -> bool:
+        result = True
+        iterable = EnumerableBase(self.ToDict()).GetItems()
+        for key, value in iterable:
+            if not func(key, value):
+                result = False
+                break
+        return result
+    def SequenceEqual(self, iterable:_Iterable) -> bool:
+        result =  EnumerableBase(EnumerableBase(self.iterable).Zip(iterable, lambda key, value, newKey, newValue: (key, value, newKey, newValue)))
+        if self.IsType(dict):
+            return result.All(lambda index, value: value[0] is value[2] and value[1] is value[3])
+        else:
+            return result.All(lambda index, value: value[0] == value[2] and value[1] is value[3])
+
+    def Aggregate(self, func:Callable[[_Temp,_Key,_Next],bool]=lambda _temp, key, value: _temp + value, result_func:Callable[[_Key,_Value],bool]=lambda key, value: value) -> _Temp:
+        result = None
+        for key, value in self.GetItems():
+            if result is None:
+                result = result_func(key, value)
+            else:
+                result = func(result, key, value)
+        return result  
+
+    def Count(self, value:_Value, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> int:
+        iterable = self.Select(func)
+        if EnumerableBase(iterable).IsType(dict):
+            return list(iterable.values()).count(value)
+        else:
+            return iterable.count(value)
+    def Lenght(self) -> int:
+        return len(self.iterable)
+    def Sum(self, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
+        iterable = self.Select(func)
+        if EnumerableBase(iterable).OfType(int,float):
+            iterable = EnumerableBase(iterable).GetValues()
+            return sum(iterable)
+        else:
+            return None
+    def Avg(self, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
+        iterable = self.Select(func)
+        if EnumerableBase(iterable).OfType(int,float):
+            iterable = EnumerableBase(iterable).GetValues()
+            return sum(iterable) / self.Lenght()
+        else:
+            return None
+    def Max(self, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
+        iterable = self.Select(func)
+        if EnumerableBase(iterable).OfType(int,float):
+            iterable = EnumerableBase(iterable).GetValues()
+            return max(iterable)
+        else:
+            return None
+    def Min(self, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> Optional[int]:
+        iterable = self.Select(func)
+        if EnumerableBase(iterable).OfType(int,float):
+            iterable = EnumerableBase(iterable).GetValues()
+            return min(iterable)
+        else:
+            return None
+
+    @overload
+    def Add(self, value:_Value): ...
+    @overload
+    def Add(self, key:_Key, value:_Value): ...
+    def Add(self, v1, v2=...):
+        if self.IsType(dict):
+            self.iterable[v1] = v2
+        else:
+            self.iterable.append(v1)
+    @overload
+    def Prepend(self, value:_Value): ...
+    @overload
+    def Prepend(self, key:_Key, value:_Value): ...
+    def Prepend(self, v1, v2=...):
+        if self.IsType(dict):
+            new_iterable = {v1: v2}
+            new_iterable.update(self.iterable)
+        else:
+            new_iterable = [v1]
+        self.Clear()
+        self.Concat(new_iterable)
+    def Insert(self, key:_Key, value:_Value):
+        if self.IsType(dict):
+            self.iterable[key] = value
+        else:
+            self.iterable.insert(key, value)
+    def Update(self, key:_Key, value:_Value):
+        self.iterable[key] = value
+    def Concat(self, *iterable):
+        for i in iterable:
+            if self.IsType(dict):
+                self.iterable.update(i)
+            else:
+                self.iterable.extend(i)
+    def Delete(self, *key:_Key):
+        for k in key:
+            self.iterable.pop(k)
+    def Remove(self, *value:_Value, all:bool=False):
+        for v in value:
+            if self.IsType(dict):
+                self.iterable.pop(self.First(lambda k, va: va == v)[0])
+            else:
+                if all:
+                    while True:
+                        if self.Count(v) == 0:
+                            break
+                        self.iterable.remove(v)
+                else:
+                    self.iterable.remove(v)
+    def Clear(self):
+        self.iterable.clear()
+    @overload
+    def Map(self, func:Callable[[_Key,_Value],_Value]=lambda key, value: value) -> _Iterable: ...
+    @overload
+    def Map(self, func:Callable[[_Key,_Value],_Value]=lambda key, value: value, key_func:Callable[[_Key,_Value],_Value]=lambda key, value: key) -> _Iterable: ...
+    def Map(self, f1=lambda k,v: v, f2=...):
+        new_iterable = self.Select( f1, f2)
+        self.Clear()
+        self.Concat(new_iterable)
+
+    def Loop(self, func:Callable[[_Iterable, _Iterable, _Key,_Value],NoReturn]=lambda iterable, result, key, value: print(key,value), iterable:Optional[_Iterable]=None, result:list=[]) -> list:
+        if iterable is None:
+            iterable = self.iterable
+        for key, value in self.GetItems():
+            func(iterable, result, key, value)    
+        return result
+
+    def Copy(self) -> _Iterable:
+        return self.iterable.copy()
+
+    def ToList(self) -> list:
+        return (self.Copy() if self.IsType(list) else list(self.iterable.values()))
+    def ToDict(self) -> dict:
+        return (self.Copy() if self.IsType(dict) else dict(enumerate(self.iterable)))
+
+    def IsEmpty(self) -> bool:
+        return self.iterable in [[],{},None]
+    def IsType(self, *type:Type):
+        return isinstance(self.iterable,type)
 
 __all__ = [
-    "_Key", "_Value",
-    "get_value", "get_index", "get_values", "get_keys", "get_items",
-    "where", "first", "last", "single", "oftype",
-    "any", "all", "isempty",
-    "tolist", "todict",
-    "count", "lenght", "summation", "average", "maximum", "minimum", "orderby",
-    "add", "update", "union", "delete", "remove", "clear",
-    "ingets", "insets"
+    "_Key", "_Value", "_Temp", "_Next", "_Iterable", "EnumerableBase"
 ]

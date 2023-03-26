@@ -8,14 +8,14 @@ with open('README.rst', 'r', encoding='utf-8') as file:
 LONG_DESCRIPTION_CONTENT_TYPE = "text/markdown"
 
 NAME = 'linqex'
-VERSION = '1.2.2'
+VERSION = '1.3'
 DESCRIPTION = 'The linq module in C# has been adapted for python with some modifications.'
 URL = 'https://github.com/TahsinCr/python-linqex'
 AUTHOR = 'TahsinCr'
 AUTHOR_EMAIL = 'TahsinCr@outlook.com'
 LICENSE = 'MIT'
-KEYWORDS = ['linq', 'linqex', 'ex']
-SRC = 'linqion'
+KEYWORDS = ['linq', 'linqex', 'ex', 'enumerable']
+SRC = 'linqex'
 PY_REQUIRES = '>=3'
 CLASSIFIERS = [
     'Programming Language :: Python :: 3',
