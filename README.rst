@@ -92,7 +92,7 @@ customers_list = [
 customers_enumerable = Enumerable(customers_list)
 
 # to select only male ones:
-customers_male_enumerable = customers_enumerable.Where(lambda key,value: value['gender'] == 'male')
+customers_male_enumerable = customers_enumerable.Where(lambda value: value['gender'] == 'male')
 
 for customer in customers_male_enumerable.ToValue:
     print(customer)

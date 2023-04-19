@@ -5,10 +5,13 @@ All notable changes to this project will be documented in this file.
 Added classes generic structure
 ### Added
  * Added 'EnumerableBase' and 'Enumerable' classes generic structure.
- * Added 'EnumerableBase().Accumulate', 'EnumerableBase().RemoveAll' and 'EnumerableBase.Dict().OfTypeByKey' methods into the 'Enumerable Base' class
- * Added 'Enumerable().Accumulate', 'Enumerable().RemoveAll' and 'Enumerable.Dict().OfTypeByKey' methods in the 'Enumerable' class
-### Remove
- * Removed 'Enumerable().Map' methods in the 'Enumerable' class
+ * Added 'EnumerableBase(iterable).Accumulate', 'EnumerableBase(iterable).RemoveAll' and 'EnumerableBase.Dict(iterdict).OfTypeByKey' methods into the 'Enumerable Base' class
+ * Added 'Enumerable(iterable).Accumulate', 'Enumerable(iterable).RemoveAll' and 'Enumerable.Dict(iterdict).OfTypeByKey' methods in the 'Enumerable' class
+### Edited
+ * Methods in class 'EnumerableBase(iterable)' in file 'build.py' have been split into structures 'build/iterlist.py' 'EnumerableListBase(iterlist)' and 'build/iterdict.py' 'EnumerableDictBase(iterdict)'.
+ * Methods in class 'Enumerable(iterable)' in file 'build.py' have been split into structures 'build/iterlist.py' and 'build/iterdict.py'.
+### Deleted
+ * Deleted 'Enumerable(iterable).Map' methods in the 'Enumerable' class
 
 <br>
 
@@ -20,10 +23,8 @@ Most methods found in the C# Linq framework have been transferred to the python-
  * Added 'Take', 'TakeLast', 'Skip', 'SkipLast', 'Select', 'Distinct', 'Except', 'Join', 'OrderBy', 'ThenBy', 'Reverse', 'Zip', 'SequenceEqual', 'Aggregate', 'Prepent', 'Insert', 'Concat', 'Map', 'ContainsByKey', 'Contains' and 'Loop' methods in the 'Enumerable' class
  * Added 'Range' and 'Repeat' static methods into the 'Enumerable' class
 ### Edited
- * PascalCase is used to name the methods inside the 'Enumerable' class and the 'build.py' file.
- * The methods in the 'build.py' file are imported into the 'EnumerableBase(iterable)' class in the 'build.py' file.
- * The names of the 'insets' -> 'Select' and 'insets' -> 'Map' methods in the 'EnumerateBase' class have been changed.
- * The names of the 'insets' -> 'Select', 'insets' -> 'Map', 'inKey' -> 'ContainsByKey' and 'inValue' -> 'Contains' methods in the 'Enumerate' class have been changed.
+ * Methods in class 'EnumerableBase(iterable)' in file 'linq.py' have been split into structures 'build/iterlist.py' and 'build/iterdict.py'.
+ * Methods in class 'EnumerableBase(iterable)' in file 'linq.py' have been split into structures 'linq/iterlist.py' and 'linq/iterdict.py'.
 ### Deleted
  * Deleted 'ingets' and 'insets' methods from 'Enumerable' class and 'build.py' file.
 
