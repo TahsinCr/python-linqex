@@ -5,7 +5,7 @@ MALE = "MALE"
 FEMALE = "FEMALE"
 
 class Customer:
-    def __init__(self, id, name, age, gender:Literal["MALE","FEMALE"]):
+    def __init__(self, id:int, name:str, age:int, gender:Literal["MALE","FEMALE"]):
         self.id = id
         self.name = name
         self.age = age
@@ -14,7 +14,7 @@ class Customer:
         return self.__dict__.copy()
 
 
-customer_list = [
+customerList = [
     Customer(1, "Ava", 32, MALE),
     Customer(2, "Alex", 19, MALE),
     Customer(3, "Amelia", 22, FEMALE),
@@ -29,4 +29,4 @@ customer_list = [
     Customer(12, "Mia", 12, FEMALE)
 ]
 
-customer_enumerable = Enumerable(customer_list)
+customerListEnumerable = Enumerable.List(customerList)
