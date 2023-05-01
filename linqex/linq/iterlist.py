@@ -29,10 +29,10 @@ def EnumerableListToValue(enumerableListOrValue:_Union["EnumerableList[_TV2]",_T
     else:
         return enumerableListOrValue
 
-class EnumerableList(Iterable[Tuple[int,_TV]],Generic[_TV]):
+class EnumerableList(Iterable[_TV],Generic[_TV]):
     
     def __init__(self, iterlist:List[_TV]=None):
-        self.iterlist = EnumerableListBase(EnumerableListToValue(iterlist)).Get()
+        self.iterlist:List[_TV] = EnumerableListBase(EnumerableListToValue(iterlist)).Get()
         self.keyHistory:list = list()
         self._main:EnumerableList = self
         self._orderby:list = list()
@@ -46,7 +46,7 @@ class EnumerableList(Iterable[Tuple[int,_TV]],Generic[_TV]):
         if isinstance(iterlist,list):
             return EnumerableListCatch(self, iterlist, key)
         else:
-            return EnumerableListCatch(self, [iterlist], key, oneValue=True)
+            return iterlist
     
     def GetKey(self, value:_TV) -> int:
         return EnumerableListBase(self.iterlist).GetKey(EnumerableListToValue(value))
@@ -324,8 +324,8 @@ class EnumerableList(Iterable[Tuple[int,_TV]],Generic[_TV]):
 
 
 
-    def __iter__(self):
-        return EnumerableListBase(self.iterlist).__iter__()
+    def __iter__(self) -> Iterable[Tuple[int,_TV]]:
+        return EnumerableListBase(self.GetValues().ToValue).__iter__()
     
     def __getitem__(self, key:int) -> _TV:
         return EnumerableListBase(self.iterlist).__getitem__(key)

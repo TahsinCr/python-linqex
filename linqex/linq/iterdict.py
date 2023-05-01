@@ -32,7 +32,7 @@ def EnumerableDictToValue(enumerableDictOrValue:_Union["EnumerableDict[_TK,_TV]"
 class EnumerableDict(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
     
     def __init__(self, iterdict:Dict[_TK,_TV]=None):
-        self.iterdict = EnumerableDictBase(EnumerableDictToValue(iterdict)).Get()
+        self.iterdict:Dict[_TK,_TV] = EnumerableDictBase(EnumerableDictToValue(iterdict)).Get()
         self.keyHistory:list = list()
         self._main:EnumerableDict = self
         self._orderby:list = list()
@@ -46,7 +46,7 @@ class EnumerableDict(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
         if isinstance(iterdict,dict):
             return EnumerableDictCatch(self, iterdict, key)
         else:
-            return EnumerableDictCatch(self, {None:iterdict}, key, oneValue=True)
+            return iterdict
     
     def GetKey(self, value:_TV) -> _TK:
         return EnumerableDictBase(self.iterdict).GetKey(EnumerableDictToValue(value))
@@ -326,8 +326,8 @@ class EnumerableDict(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
 
 
 
-    def __iter__(self):
-        return EnumerableDictBase(self.iterdict).__iter__()
+    def __iter__(self) -> Iterable[Tuple[_TK,_TV]]:
+        return EnumerableDictBase(self.GetItems().ToValue).__iter__()
     
     def __getitem__(self, key:_TK) -> _TV:
         return EnumerableDictBase(self.iterdict).__getitem__(key)

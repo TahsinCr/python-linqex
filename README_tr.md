@@ -159,25 +159,81 @@ pip install linqex
 Elimizde Farklı müşterilerimiz olsun. Bu müşteriler arasından erkek olanları seçelim. Bunun için:
 ```python
 from linqex.linq import Enumerable
-customers_list = [
-    {'name' : 'Jonh', 'age' : 25, 'gender': 'male'}
-    {'name' : 'Emma', 'age' : 44, 'gender': 'female'}
+customersList = [
+    {'name' : 'Jonh', 'age' : 25, 'gender': 'male'},
+    {'name' : 'Emma', 'age' : 44, 'gender': 'female'},
     {'name' : 'Steve', 'age' : 17, 'gender': 'male'}
 ]
 
-customers_enumerable = Enumerable(customers_list)
+customersEnumerable = Enumerable(customersList)
 
 # to select only male ones:
-customers_male_enumerable = customers_enumerable.Where(lambda value: value['gender'] == 'male')
+customersMaleEnumerable = customersEnumerable.Where(lambda key, value: value['gender'] == 'male')
 
-for customer in customers_male_enumerable.ToValue:
+for customer in customersMaleEnumerable.ToList:
     print(customer)
+
 ```
 Çıktı
 ```
 {'name' : 'Jonh', 'age' : 25, 'gender': 'male'}
 {'name' : 'Steve', 'age' : 17, 'gender': 'male'}
 ```
+
+<br>
+
+Yukarıda yazdığımız örneği biraz daha geliştirelim:
+```python
+from typing import Literal
+from linqex.linq import Enumerable
+
+MALE = "MALE"
+FEMALE = "FEMALE"
+
+class Customer:
+    def __init__(self, id:int, name:str, age:int, gender:Literal["MALE","FEMALE"]):
+        self.id = id
+        self.name = name
+        self.age = age
+        self.gender = gender
+
+
+customerList = [
+    Customer(1, "Ava", 32, MALE),
+    Customer(2, "Alex", 19, MALE),
+    Customer(3, "Amelia", 22, FEMALE),
+    Customer(4, "Arnold", 43, MALE),
+    Customer(5, "Eric", 55, MALE),
+    Customer(6, "Lily", 12, FEMALE),
+    Customer(7, "Jessia", 32, MALE),
+    Customer(8, "William", 19, MALE),
+    Customer(9, "Emily", 22, FEMALE),
+    Customer(10, "Mateo", 43, MALE),
+    Customer(11, "Antony", 55, MALE),
+    Customer(12, "Mia", 12, FEMALE)
+]
+
+customerEnumerable = Enumerable.List(customerList)
+
+# to select only male ones:
+customersMaleEnumerable = customerEnumerable.Where(lambda customer: customer.gender == MALE)
+
+for customer in customersMaleEnumerable.ToList:
+    print(customer.__dict__)
+
+```
+Çıktı
+```
+{'id': 1, 'name': 'Ava', 'age': 32, 'gender': 'MALE'}
+{'id': 2, 'name': 'Alex', 'age': 19, 'gender': 'MALE'}
+{'id': 4, 'name': 'Arnold', 'age': 43, 'gender': 'MALE'}
+{'id': 5, 'name': 'Eric', 'age': 55, 'gender': 'MALE'}
+{'id': 7, 'name': 'Jessia', 'age': 32, 'gender': 'MALE'}
+{'id': 8, 'name': 'William', 'age': 19, 'gender': 'MALE'}
+{'id': 10, 'name': 'Mateo', 'age': 43, 'gender': 'MALE'}
+{'id': 11, 'name': 'Antony', 'age': 55, 'gender': 'MALE'}
+```
+
 _Daha fazla örnek için lütfen [belgelere](https://github.com/TahsinCr/python-linqex/wiki) bakın_
 
 <p align="right">(<a href="#readme-top">başa geri dön</a>)</p>

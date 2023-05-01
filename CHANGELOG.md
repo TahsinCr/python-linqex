@@ -1,6 +1,19 @@
 # **Change Log**
 All notable changes to this project will be documented in this file.
 
+## **[1.5] - 01.05.2023**
+New `EnumerableItem`.
+### Added
+ * Added `EnumerableItemBase` and `EnumerableItem` classes.
+### Edited
+ * Calling the `EnumerableBase` class will now return the `EnumerableItemBase` class instead of the `EnumerableListBase`.
+ * Calling the `Enumerable` class will now return the `EnumerableItem` class instead of the `EnumerableList`.
+ * 
+### Fixed
+ * Fixed minor bugs in `OrderBy` method in all classes.
+
+<br>
+
 ## **[1.4] - 19.04.2023**
 Added classes generic structure
 ### Added

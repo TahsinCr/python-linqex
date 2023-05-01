@@ -99,9 +99,9 @@ class EnumerableDictBase(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
             for outKey, outValue in EnumerableDictBase(outerIterdict).GetItems():
                 inner = EnumerableDictBase(innerIterdict).First(lambda inKey, inValue: outerFunc(outKey, outValue) == innerFunc(inKey, inValue))
                 if inner is None:
-                    newIterdict.append((outKey, outValue, None, None))
+                    newIterdict.append((None, None, outKey, outValue))
                 else:
-                    newIterdict.append((outKey, outValue, inner[0], inner[1]))        
+                    newIterdict.append((inner[0], inner[1], outKey, outValue))        
         newIterdict:List[Tuple[_TK,_TV,_TK2,_TV2]] = []
         if joinType == JoinType.INNER:
             joinTypeFunc = innerJoin
@@ -117,7 +117,7 @@ class EnumerableDictBase(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
       
     def OrderBy(self, *orderByFunc:Tuple[Callable[[_TK,_TV],_Union[Tuple[_TFV],_TFV]],_Desc]) -> Dict[_TK,_TV]:
         if orderByFunc == ():
-            orderByFunc = (lambda key, value: value)
+            orderByFunc = ((lambda key, value: value, False))
         iterdict = self.GetItems()
         orderByFunc:list = list(reversed(orderByFunc))
         for func, desc in orderByFunc:
@@ -218,7 +218,8 @@ class EnumerableDictBase(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
             result = dict([self.GetItems()[0]])
             result.update(dict(zip(self.GetKeys()[1:], list(itertools.accumulate(self.GetItems(), lambda temp, next: accumulateFunc(FirstTemp(temp), next[0], next[1])))[1:])))
             return result
-        return None
+        else:
+            return {}
         
     def Aggregate(self, accumulateFunc:Callable[[_TV,_TK,_TV],_TFV]=lambda temp, key, nextValue: temp + nextValue) -> _TFV:
         return EnumerableDictBase(self.Accumulate(accumulateFunc)).GetValues()[-1]
@@ -374,7 +375,7 @@ class EnumerableDictBase(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
 
 
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[Tuple[int,_TV]]:
         return iter(self.GetItems())
     
     def __getitem__(self, key:_TK) -> _TV:

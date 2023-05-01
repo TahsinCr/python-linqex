@@ -3,7 +3,7 @@ import itertools
 
 
 # Returns get value or Enumerable(value).
-result1 = customerDictEnumerable.Get(2).ToValue
+result1 = customerDictEnumerable.Get(2)
 assert result1 is customerDict[2], "GetTest - result1 is not equal to desired value"
 
 

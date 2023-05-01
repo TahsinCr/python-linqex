@@ -5,7 +5,7 @@ from numbers import Number
 from collections.abc import Iterable
 import itertools
 
-class EnumerableListBase(Iterable[Tuple[int,_TV]],Generic[_TV]):
+class EnumerableListBase(Iterable[_TV],Generic[_TV]):
     
     def __init__(self, iterlist:Optional[List[_TV]]=None):
         if iterlist is None:
@@ -98,9 +98,9 @@ class EnumerableListBase(Iterable[Tuple[int,_TV]],Generic[_TV]):
             for outValue in outerIterlist:
                 inner = EnumerableListBase(innerIterlist).First(lambda inValue: outerFunc(outValue) == innerFunc(inValue))
                 if inner is None:
-                    newIterlist.Add((outValue, None))
+                    newIterlist.Add((None, outValue))
                 else:
-                    newIterlist.Add((outValue, inner[1]))
+                    newIterlist.Add((inner[1], outValue))
         newIterlist = EnumerableListBase()
         if joinType == JoinType.INNER:
             joinTypeFunc = innerJoin
@@ -113,15 +113,16 @@ class EnumerableListBase(Iterable[Tuple[int,_TV]],Generic[_TV]):
       
     def OrderBy(self, *orderByFunc:Tuple[Callable[[_TV],_Union[Tuple[_TFV],_TFV]],_Desc]) -> List[_TV]:
         if orderByFunc == ():
-            orderByFunc = ((lambda key, value: value, False))
+            orderByFunc = ((lambda value: value, False))
         iterlist = self.Get()
         orderByFunc:list = list(reversed(orderByFunc))
         for func, desc in orderByFunc:
-            iterlist = list(sorted(iterlist, key=func, reverse=desc))
-        return iterlist
+            iterlist = sorted(iterlist, key=func, reverse=desc)
+        return list(iterlist)
         
     def GroupBy(self, groupByFunc:Callable[[_TV],_Union[Tuple[_TFV],_TFV]]=lambda value: value) -> List[Tuple[_Union[Tuple[_TFV],_TFV], List[_TV]]]:
-        iterlist = itertools.groupby(self.OrderBy((groupByFunc, False)), groupByFunc)
+        iterlist = self.OrderBy((groupByFunc, False))
+        iterlist = itertools.groupby(iterlist, groupByFunc)
         return [(keys, list(group)) for keys, group in iterlist]
 
     def Reverse(self) -> List[_TV]:
@@ -226,11 +227,10 @@ class EnumerableListBase(Iterable[Tuple[int,_TV]],Generic[_TV]):
         
     def Min(self) -> Optional[_TV]:
         iterlist = self.GetValues()
-        if EnumerableListBase(iterlist).OfType(Number):
+        if self.OfType(Number):
             return min(iterlist)
         else:
             return None
-
 
 
 
@@ -362,8 +362,8 @@ class EnumerableListBase(Iterable[Tuple[int,_TV]],Generic[_TV]):
 
 
 
-    def __iter__(self):
-        return iter(self.Get())
+    def __iter__(self) -> Iterable[_TV]:
+        return iter(self.GetValues())
     
     def __getitem__(self, key:int) -> _TV:
         return self.Get(key)
