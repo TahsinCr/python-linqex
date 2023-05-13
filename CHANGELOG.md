@@ -1,6 +1,21 @@
 # **Change Log**
 All notable changes to this project will be documented in this file.
 
+## **[1.6] - 14.05.2023**
+Added abstract classes. Minor bug fixes.
+### Added
+ * Added `abc.iterablebase.py` file. Added `AbstractEnumerableBase` class inside the file.
+ * Added `abc.iterable.py` file. Added `AbstractEnumerable` class inside the file.
+ * Added abstract classes for `Enumerable` and `EnumerableBase` classes.
+ * The magic method `__str__` has been added to inherited classes in all `Abstract IEnumerable` and `Abstract Enumerable Base` classes. (output: `Enumerable([...])`)
+### Edited
+ * By default, `orderByFunc` parameters of `OrderBy` and `ThenBy` methods in all classes are assigned `lambda key, value: value` for dict classes and `lambda value: value` for list classes.
+ * By default, `conditionFunc` parameters of `Any` and `All` methods in all classes are assigned `lambda key, value: value` for dict classes and `lambda value: value` for list classes.
+### Fixed
+ * Fixed minor bugs in magic methods of all classes.
+
+<br>
+
 ## **[1.5] - 01.05.2023**
 New `EnumerableItem`.
 ### Added
@@ -8,7 +23,6 @@ New `EnumerableItem`.
 ### Edited
  * Calling the `EnumerableBase` class will now return the `EnumerableItemBase` class instead of the `EnumerableListBase`.
  * Calling the `Enumerable` class will now return the `EnumerableItem` class instead of the `EnumerableList`.
- * 
 ### Fixed
  * Fixed minor bugs in `OrderBy` method in all classes.
 

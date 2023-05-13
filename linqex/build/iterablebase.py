@@ -1,4 +1,5 @@
 from linqex._typing import *
+from linqex.abstract.iterablebase import AbstractEnumerableBase
 from linqex.build.iterdictbase import EnumerableDictBase
 from linqex.build.iterlistbase import EnumerableListBase
 from linqex.build.iteritembase import EnumerableItemBase
@@ -16,7 +17,7 @@ class EnumerableBase(Generic[_TK,_TV]):
         elif isinstance(iterable, dict):
             return cls.Dict(iterable)
         else:
-            raise TypeError()
+            raise TypeError("Must be list or dict, not {}".format(str(type(iterable))[8,-2]))
 
     @classmethod
     def Item(cls, iteritem:List[_TV]=None) -> EnumerableItemBase[_TV]:
@@ -38,4 +39,4 @@ class EnumerableBase(Generic[_TK,_TV]):
 
 
 
-__all__ = ["EnumerableBase"]
+__all__ = ["AbstractEnumerableBase", "EnumerableListBase", "EnumerableItemBase", "EnumerableDictBase", "EnumerableBase"]

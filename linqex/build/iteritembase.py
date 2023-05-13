@@ -1,15 +1,15 @@
 from linqex._typing import *
+from linqex.abstract.iterablebase import AbstractEnumerableBase
 from linqex.build.iterlistbase import EnumerableListBase
 
-from typing import Dict, List, Callable, Union as _Union, NoReturn, Optional, Tuple, Type, Generic
-from numbers import Number
+from typing import Dict, List, Callable, Union as _Union, NoReturn, Optional, Tuple, Type, Generic, Self
 from collections.abc import Iterable
 import itertools
 
-class EnumerableItemBase(EnumerableListBase,Iterable[Tuple[int,_TV]],Generic[_TV]):
+class EnumerableItemBase(EnumerableListBase, Iterable[Tuple[int,_TV]], Generic[_TK,_TV]):
         
-    def __init__(self, iterlist:Optional[List[_TV]]=None):
-        super().__init__(iterlist)
+    def __init__(self, iterable:Optional[List[_TV]]=None):
+        super().__init__(iterable)
 
     def Get(self, *key:int) -> _Union[List[_TV],_TV]:
         return super().Get(*key)
@@ -47,78 +47,80 @@ class EnumerableItemBase(EnumerableListBase,Iterable[Tuple[int,_TV]],Generic[_TV
         return list(map(selectFunc, self.GetKeys(), self.GetValues()))
     
     def Distinct(self, distinctFunc:Callable[[int,_TV],_TFV]=lambda key, value: value) -> List[_TV]:
-        newIterlist = self.Copy()
+        newIterable = self.Copy()
+        indexStep = 0
         for key, value in self.GetItems():
-            if EnumerableItemBase(EnumerableItemBase(newIterlist).Select(distinctFunc)).Count(distinctFunc(key, value)) > 1:
-                EnumerableItemBase(newIterlist).Remove(value)
-        return newIterlist
+            if EnumerableItemBase(EnumerableItemBase(newIterable).Select(distinctFunc)).Count(distinctFunc(key, value)) > 1:
+                EnumerableItemBase(newIterable).Delete(key-indexStep)
+                indexStep += 1
+        return newIterable
     
     def Except(self, exceptFunc:Callable[[int,_TV],_TFV]=lambda key, value: value, *value:_TV) -> List[_TV]:
-        newIterlist = EnumerableItemBase()
+        newIterable = EnumerableItemBase()
         for k, v in self.GetItems():
             if not exceptFunc(k, v) in value:
-                newIterlist.Add(k, v)
-        return newIterlist.Get()
+                newIterable.Add(k, v)
+        return newIterable.Get()
 
-    def Join(self, iterlist: List[_TV2], 
+    def Join(self, iterable: List[_TV2], 
         innerFunc:Callable[[int,_TV],_TFV]=lambda key, value: value, 
         outerFunc:Callable[[int,_TV2],_TFV]=lambda key, value: value, 
         joinFunc:Callable[[int,_TV,int,_TV2],_TFV2]=lambda inKey, inValue, outKey, outValue: (inValue, outValue),
         joinType:JoinType=JoinType.INNER
     ) -> List[_TFV2]:
-        def innerJoin(innerIterlist:List[_TV], outerIterlist:List[_TV2], newIterlist:EnumerableItemBase[Tuple[_TV,_TV2]]):
+        def innerJoin(innerIterable:List[_TV], outerIterable:List[_TV2], newIterable:EnumerableItemBase[Tuple[_TV,_TV2]]):
             nonlocal outerFunc, innerFunc
-            for inKey, inValue in EnumerableItemBase(innerIterlist).GetItems():
-                outer = EnumerableItemBase(outerIterlist).Where(lambda outKey, outValue: outerFunc(outKey, outValue) == innerFunc(inKey, inValue))
+            for inKey, inValue in EnumerableItemBase(innerIterable).GetItems():
+                outer = EnumerableItemBase(outerIterable).Where(lambda outKey, outValue: outerFunc(outKey, outValue) == innerFunc(inKey, inValue))
                 if outer != []:
                     for out in outer:
-                        newIterlist.Add(-1,(inKey, inValue, out[0], out[1]))
-        def leftJoin(innerIterlist:List[_TV], outerIterlist:List[_TV2], newIterlist:EnumerableItemBase[Tuple[_TV,Optional[_TV2]]]):
+                        newIterable.Add(-1,(inKey, inValue, out[0], out[1]))
+        def leftJoin(innerIterable:List[_TV], outerIterable:List[_TV2], newIterable:EnumerableItemBase[Tuple[_TV,Optional[_TV2]]]):
             nonlocal outerFunc, innerFunc
-            for inKey, inValue in EnumerableItemBase(innerIterlist).GetItems():
-                outer = EnumerableItemBase(outerIterlist).Where(lambda outKey, outValue: outerFunc(outKey, outValue) == innerFunc(inKey, inValue))
+            for inKey, inValue in EnumerableItemBase(innerIterable).GetItems():
+                outer = EnumerableItemBase(outerIterable).Where(lambda outKey, outValue: outerFunc(outKey, outValue) == innerFunc(inKey, inValue))
                 if outer is None:
-                    newIterlist.Add(-1,(inKey, inValue, None, None))
+                    newIterable.Add(-1,(inKey, inValue, None, None))
                 else:
-                    newIterlist.Add((inKey, inValue, outer[0], outer[1]))
-        def rightJoin(innerIterlist:List[_TV], outerIterlist:List[_TV2], newIterlist:EnumerableItemBase[Tuple[_TV2,Optional[_TV]]]):
+                    newIterable.Add((inKey, inValue, outer[0], outer[1]))
+        def rightJoin(innerIterable:List[_TV], outerIterable:List[_TV2], newIterable:EnumerableItemBase[Tuple[_TV2,Optional[_TV]]]):
             nonlocal outerFunc, innerFunc
-            for outKey, outValue in EnumerableItemBase(outerIterlist).GetItems():
-                inner = EnumerableItemBase(innerIterlist).First(lambda inKey, inValue: outerFunc(outKey, outValue) == innerFunc(inKey, inValue))
+            for outKey, outValue in EnumerableItemBase(outerIterable).GetItems():
+                inner = EnumerableItemBase(innerIterable).First(lambda inKey, inValue: outerFunc(outKey, outValue) == innerFunc(inKey, inValue))
                 if inner is None:
-                    newIterlist.Add(-1,(None, None, outKey, outValue))
+                    newIterable.Add(-1,(None, None, outKey, outValue))
                 else:
-                    newIterlist.Add(-1,(inner[0], inner[1], outKey, outValue))
-        newIterlist = EnumerableItemBase()
+                    newIterable.Add(-1,(inner[0], inner[1], outKey, outValue))
+        newIterable = EnumerableItemBase()
         if joinType == JoinType.INNER:
             joinTypeFunc = innerJoin
         elif joinType == JoinType.LEFT:
             joinTypeFunc = leftJoin
         elif joinType == JoinType.RIGHT:
             joinTypeFunc = rightJoin
-        joinTypeFunc(self.Get(), iterlist, newIterlist)
-        return newIterlist.Select(lambda key, value: joinFunc(value[0], value[1], value[2], value[3]))         
+        joinTypeFunc(self.Get(), iterable, newIterable)
+        return newIterable.Select(lambda key, value: joinFunc(value[0], value[1], value[2], value[3]))         
       
     def OrderBy(self, *orderByFunc:Tuple[Callable[[int,_TV],_Union[Tuple[_TFV],_TFV]],_Desc]) -> List[_TV]:
         if orderByFunc == ():
             orderByFunc = ((lambda key, value: value))
-        iterlist = self.GetItems()
+        iterable = self.GetItems()
         orderByFunc = list(reversed(orderByFunc))
         for func, desc in orderByFunc:
-            iterlist = sorted(iterlist, key=lambda v: func(v[0], v[1]), reverse=desc)
-        return list(zip(*iterlist))[1]
+            iterable = sorted(iterable, key=lambda x: func(x[0], x[1]), reverse=desc)
+        return list(zip(*iterable))[1]
         
     def GroupBy(self, groupByFunc:Callable[[int,_TV],_Union[Tuple[_TFV],_TFV]]=lambda value: value) -> List[Tuple[_Union[Tuple[_TFV],_TFV], List[_TV]]]:
-        iterlist = EnumerableItemBase(self.OrderBy((groupByFunc, False))).GetItems()
-        iterlist = itertools.groupby(iterlist, lambda items: groupByFunc(items[0], items[1]))
-        return [(keys, list(zip(*list(group)))[1]) for keys, group in iterlist]
+        iterable = EnumerableItemBase(self.OrderBy((groupByFunc, False))).GetItems()
+        iterable = itertools.groupby(iterable, lambda items: groupByFunc(items[0], items[1]))
+        return [(keys, list(zip(*list(group)))[1]) for keys, group in iterable]
     
     def Reverse(self) -> List[_TV]:
         return super().Reverse()
           
-    def Zip(self, iterlist:List[_TV2], zipFunc:Callable[[int,_TV,int,_TV2],_TFV]=lambda inKey, inValue, outKey, outValue: (inValue, outValue)) -> List[_TFV]:
-        newIterlist = EnumerableItemBase(list(zip(self.GetValues(), EnumerableItemBase(iterlist).GetKeys(), EnumerableItemBase(iterlist).GetValues())))
-        return newIterlist.Select(lambda key, value: zipFunc(key, value[0], value[1], value[2]))
+    def Zip(self, iterable:List[_TV2], zipFunc:Callable[[int,_TV,int,_TV2],_TFV]=lambda inKey, inValue, outKey, outValue: (inValue, outValue)) -> List[_TFV]:
+        newIterable = EnumerableItemBase(list(zip(self.GetValues(), EnumerableItemBase(iterable).GetKeys(), EnumerableItemBase(iterable).GetValues())))
+        return newIterable.Select(lambda key, value: zipFunc(key, value[0], value[1], value[2]))
 
 
 
@@ -154,7 +156,7 @@ class EnumerableItemBase(EnumerableListBase,Iterable[Tuple[int,_TV]],Generic[_TV
 
 
 
-    def Any(self, conditionFunc:Callable[[int,_TV],bool]=lambda key, value: True) -> bool:
+    def Any(self, conditionFunc:Callable[[int,_TV],bool]=lambda key, value: value) -> bool:
         result = False
         for key, value in self.GetItems():
             if conditionFunc(key, value):
@@ -162,7 +164,7 @@ class EnumerableItemBase(EnumerableListBase,Iterable[Tuple[int,_TV]],Generic[_TV
                 break
         return result
     
-    def All(self, conditionFunc:Callable[[int,_TV],bool]=lambda key, value: True) -> bool:
+    def All(self, conditionFunc:Callable[[int,_TV],bool]=lambda key, value: value) -> bool:
         result = True
         for key, value in self.GetItems():
             if not conditionFunc(key, value):
@@ -170,8 +172,8 @@ class EnumerableItemBase(EnumerableListBase,Iterable[Tuple[int,_TV]],Generic[_TV
                 break
         return result
  
-    def SequenceEqual(self, iterlist:List[_TV2]) -> bool:
-        return super().SequenceEqual(iterlist)
+    def SequenceEqual(self, iterable:List[_TV2]) -> bool:
+        return super().SequenceEqual(iterable)
 
 
 
@@ -212,7 +214,6 @@ class EnumerableItemBase(EnumerableListBase,Iterable[Tuple[int,_TV]],Generic[_TV
         return super().Max()
         
     def Min(self) -> Optional[_TV]:
-        iterlist = self.GetValues()
         return super().Min()
 
 
@@ -232,24 +233,16 @@ class EnumerableItemBase(EnumerableListBase,Iterable[Tuple[int,_TV]],Generic[_TV
     def Insert(self, key:_Key, value:_Value):
         super().Insert(key, value)
 
-    def Update(self, key:_TK, value:_Value):
+    def Update(self, key:int, value:_Value):
         super().Update(key, value)
 
-    def Concat(self, *iterlist:List[_Value]):
-        super().Concat(*iterlist)
+    def Concat(self, *iterable:List[_Value]):
+        super().Concat(*iterable)
 
-    def Union(self, *iterlist:List[_Value]):
-        if not iterlist in [(),[]]:
-            iterlist:list = list(iterlist)
-            newIterlist = EnumerableListBase()
-            filter = dict(self.Where(lambda v: v in iterlist[0]))
-            EnumerableListBase(filter).Loop(lambda v: newIterlist.Add(v))
-            iterlist.pop(0)
-            self.Clear()
-            self.Concat(newIterlist.Get())
-            self.Union(*iterlist)
+    def Union(self, *iterable:List[_Value]):
+        super().Union(*iterable)
 
-    def Delete(self, *key:_TK):
+    def Delete(self, *key:int):
         super().Delete(*key)
 
     def Remove(self, *value:_TV):
@@ -263,7 +256,7 @@ class EnumerableItemBase(EnumerableListBase,Iterable[Tuple[int,_TV]],Generic[_TV
 
 
 
-    def Loop(self, loopFunc:Callable[[_TV],NoReturn]=lambda value: print(value)):
+    def Loop(self, loopFunc:Callable[[int,_TV],NoReturn]=lambda value: print(value)):
         for key, value in self.GetItems():
             loopFunc(key, value)
 
@@ -291,25 +284,27 @@ class EnumerableItemBase(EnumerableListBase,Iterable[Tuple[int,_TV]],Generic[_TV
     def __neg__(self) -> List[_TV]:
         return super().__neg__()
     
-    def __add__(self, iterlist:List[_TV2]) -> List[_Union[_TV,_TV2]]:
-        return super().__add__(iterlist)
+    def __add__(self, iterable:List[_TV2]) -> List[_Union[_TV,_TV2]]:
+        return super().__add__(iterable)
     
-    def __iadd__(self, iterlist:List[_TV2]):
-        super().__iadd__(iterlist)
+    def __iadd__(self, iterable:List[_TV2]) -> Self:
+        super().__iadd__(iterable)
+        return self
 
-    def __sub__(self, iterlist:List[_TV2]) -> List[_Union[_TV,_TV2]]:
-        return super().__sub__(iterlist)
+    def __sub__(self, iterable:List[_TV2]) -> List[_Union[_TV,_TV2]]:
+        return super().__sub__(iterable)
     
-    def __isub__(self, iterlist:List[_TV2]):
-        super().__isub__(iterlist)
+    def __isub__(self, iterable:List[_TV2]) -> Self:
+        super().__isub__(iterable)
+        return self
 
     
 
-    def __eq__(self, iterlist:List[_TV2]) -> bool:
-        return super().__eq__(iterlist)
+    def __eq__(self, iterable:List[_TV2]) -> bool:
+        return super().__eq__(iterable)
 
-    def __ne__(self, iterlist:List[_TV2]) -> bool:
-        return super().__eq__(iterlist)
+    def __ne__(self, iterable:List[_TV2]) -> bool:
+        return super().__eq__(iterable)
     
     def __contains__(self, value:_Value) -> bool:
         return super().__sub__(value)
@@ -321,30 +316,33 @@ class EnumerableItemBase(EnumerableListBase,Iterable[Tuple[int,_TV]],Generic[_TV
     
     def __len__(self) -> int:
         return super().__len__()
+    
+    def __str__(self) -> str:
+        return super().__str__()
 
 
 
     def __iter__(self) -> Iterable[Tuple[int,_TV]]:
-        return iter(self.GetItems())
+        return super().__iter__()
     
     def __getitem__(self, key:int) -> _TV:
-        return self.Get(key)
+        return super().__getitem__(key)
     
     def __setitem__(self, key:int, value:_Value):
-        self.Update(key, value)
+        super().__setitem__(key, value)
 
     def __delitem__(self, key:int):
-        self.Delete(key)
+        super().__delitem__(key)
 
     @staticmethod
-    def Range(start:int, stop:int, step:int=1) -> "EnumerableListBase[int]":
+    def Range(start:int, stop:int, step:int=1) -> List[int]:
         return EnumerableListBase.Range(start, stop, step)
     
     @staticmethod
-    def Repeat(value:_Value, count:int) -> "EnumerableListBase[int]":
+    def Repeat(value:_TV, count:int) -> List[_TV]:
         return EnumerableListBase.Repeat(value, count)
 
 
 
 
-__all__ = ["EnumerableItemBase"]
+__all__ = ["AbstractEnumerableBase","EnumerableItemBase"]

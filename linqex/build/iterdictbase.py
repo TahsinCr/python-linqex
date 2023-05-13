@@ -1,30 +1,31 @@
 from linqex._typing import *
+from linqex.abstract.iterablebase import AbstractEnumerableBase
 
-from typing import Dict, List, Callable, Union as _Union, NoReturn, Optional, Tuple, Type, Generic
+from typing import Dict, List, Callable, Union as _Union, NoReturn, Optional, Tuple, Type, Generic, Self
 from numbers import Number
 from collections.abc import Iterable
 import itertools
 
-class EnumerableDictBase(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
+class EnumerableDictBase(AbstractEnumerableBase, Iterable[Tuple[_TK,_TV]], Generic[_TK,_TV]):
     
-    def __init__(self, iterdict:Optional[Dict[_TK,_TV]]=None):
-        if iterdict is None:
-            iterdict:Dict[_TK,_TV] = dict()
-        if isinstance(iterdict, dict):
-            self.iterdict:Dict[_TK,_TV] = iterdict
-        elif isinstance(iterdict, list):
-            self.iterdict:Dict[_TK,_TV] = dict(iterdict)
+    def __init__(self, iterable:Optional[Dict[_TK,_TV]]=None):
+        if iterable is None:
+            iterable:Dict[_TK,_TV] = dict()
+        if isinstance(iterable, dict):
+            self.iterable:Dict[_TK,_TV] = iterable
+        elif isinstance(iterable, list):
+            self.iterable:Dict[_TK,_TV] = dict(iterable)
         else:
-            raise TypeError(iterdict)
+            raise TypeError("Must be dict, not {}".format(str(type(iterable))[8,-2]))
 
     def Get(self, *key:_TK) -> _Union[Dict[_TK,_TV],_TV]:
-        iterdict = self.iterdict
+        iterable = self.iterable
         for k in key:
-            if  k in EnumerableDictBase(iterdict).GetKeys():
-                iterdict = iterdict[k]
+            if  k in EnumerableDictBase(iterable).GetKeys():
+                iterable = iterable[k]
             else:
                 raise KeyError(k)
-        return iterdict
+        return iterable
     
     def GetKey(self, value:_TV) -> _TK:
         return {v: k for k, v in self.GetItems()}[value]
@@ -55,89 +56,92 @@ class EnumerableDictBase(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
     def SkipLast(self, count:int) -> Dict[_TK,_TV]:
         return self.Take(self.Lenght()-count)
     
-    def Select(self, selectFunc:Callable[[_TK,_TV],_TFV]=lambda key, value: value, selectFuncByKey:Callable[[_TK,_TV],_TFK]=lambda key, value: key) -> Dict[_TFK,_TFV]:
+    def Select(self, 
+        selectFunc:Callable[[_TK,_TV],_TFV]=lambda key, value: value, 
+        selectFuncByKey:Callable[[_TK,_TV],_TFK]=lambda key, value: key
+    ) -> Dict[_TFK,_TFV]:
         return dict(list(map(lambda key, value: (selectFuncByKey(key,value), selectFunc(key,value)), self.GetKeys(), self.GetValues())))
     
     def Distinct(self, distinctFunc:Callable[[_TK,_TV],_TFV]=lambda key, value: value) -> Dict[_TK,_TV]:
-        newIterdict = self.Copy()
+        newIterable = self.Copy()
         for key, value in self.GetItems():
-            if EnumerableDictBase(EnumerableDictBase(newIterdict).Select(distinctFunc)).Count(distinctFunc(key, value)) > 1:
-                EnumerableDictBase(newIterdict).Delete(key)
-        return newIterdict
+            if EnumerableDictBase(EnumerableDictBase(newIterable).Select(distinctFunc)).Count(distinctFunc(key, value)) > 1:
+                EnumerableDictBase(newIterable).Delete(key)
+        return newIterable
     
     def Except(self, exceptFunc:Callable[[_TK,_TV],_TFV]=lambda key, value: value, *value:_TV) -> Dict[_TK,_TV]:
-        newIterdict = EnumerableDictBase()
+        newIterable = EnumerableDictBase()
         for k, v in self.GetItems():
             if not exceptFunc(k,v) in value:
-                newIterdict.Add(k,v)
-        return newIterdict.Get()
+                newIterable.Add(k,v)
+        return newIterable.Get()
 
-    def Join(self, iterdict: Dict[_TK2,_TV2], 
+    def Join(self, iterable: Dict[_TK2,_TV2], 
         innerFunc:Callable[[_TK,_TV],_TFV]=lambda key, value: value, 
         outerFunc:Callable[[_TK2,_TV2],_TFV]=lambda key, value: value, 
         joinFunc:Callable[[_TK,_TV,_TK2,_TV2],_TFV2]=lambda inKey, inValue, outKey, outValue: (inValue, outValue),
         joinFuncByKey:Callable[[_TK,_TV,_TK2,_TV2],_TFK2]=lambda inKey, inValue, outKey, outValue: inKey,
         joinType:JoinType=JoinType.INNER
     ) -> Dict[_TFK2,_TFV2]:
-        def innerJoin(innerIterdict:Dict[_TK,_TV], outerIterdict:Dict[_TK2,_TV2], newIterdict:List[Tuple[_TK,_TV,_TK2,_TV2]]):
+        def innerJoin(innerIterable:Dict[_TK,_TV], outerIterable:Dict[_TK2,_TV2], newIterable:List[Tuple[_TK,_TV,_TK2,_TV2]]):
             nonlocal outerFunc, innerFunc
-            for inKey, inValue in EnumerableDictBase(innerIterdict).GetItems():
-                outer = EnumerableDictBase(outerIterdict).Where(lambda outKey, outValue: outerFunc(outKey,outValue) == innerFunc(inKey, inValue))
+            for inKey, inValue in EnumerableDictBase(innerIterable).GetItems():
+                outer = EnumerableDictBase(outerIterable).Where(lambda outKey, outValue: outerFunc(outKey,outValue) == innerFunc(inKey, inValue))
                 if outer != []:
                     for outKey, outValue in outer:
-                        newIterdict.append((inKey, inValue, outKey, outValue))
-        def leftJoin(innerIterdict:Dict[_TK,_TV], outerIterdict:Dict[_TK2,_TV2], newIterdict:List[Tuple[_TK,_TV,_TK2,_TV2]]):
+                        newIterable.append((inKey, inValue, outKey, outValue))
+        def leftJoin(innerIterable:Dict[_TK,_TV], outerIterable:Dict[_TK2,_TV2], newIterable:List[Tuple[_TK,_TV,_TK2,_TV2]]):
             nonlocal outerFunc, innerFunc
-            for inKey, inValue in EnumerableDictBase(innerIterdict).GetItems():
-                outer = EnumerableDictBase(outerIterdict).First(lambda outKey, outValue: outerFunc(outKey, outValue) == innerFunc(inKey, inValue))
+            for inKey, inValue in EnumerableDictBase(innerIterable).GetItems():
+                outer = EnumerableDictBase(outerIterable).First(lambda outKey, outValue: outerFunc(outKey, outValue) == innerFunc(inKey, inValue))
                 if outer is None:
-                    newIterdict.append((inKey, inValue, None, None))
+                    newIterable.append((inKey, inValue, None, None))
                 else:
-                    newIterdict.append((inKey, inValue, outer[0], outer[1]))
-        def rightJoin(innerIterdict:Dict[_TK,_TV], outerIterdict:Dict[_TK2,_TV2], newIterdict:List[Tuple[_TK,_TV,_TK2,_TV2]]):
+                    newIterable.append((inKey, inValue, outer[0], outer[1]))
+        def rightJoin(innerIterable:Dict[_TK,_TV], outerIterable:Dict[_TK2,_TV2], newIterable:List[Tuple[_TK,_TV,_TK2,_TV2]]):
             nonlocal outerFunc, innerFunc
-            for outKey, outValue in EnumerableDictBase(outerIterdict).GetItems():
-                inner = EnumerableDictBase(innerIterdict).First(lambda inKey, inValue: outerFunc(outKey, outValue) == innerFunc(inKey, inValue))
+            for outKey, outValue in EnumerableDictBase(outerIterable).GetItems():
+                inner = EnumerableDictBase(innerIterable).First(lambda inKey, inValue: outerFunc(outKey, outValue) == innerFunc(inKey, inValue))
                 if inner is None:
-                    newIterdict.append((None, None, outKey, outValue))
+                    newIterable.append((None, None, outKey, outValue))
                 else:
-                    newIterdict.append((inner[0], inner[1], outKey, outValue))        
-        newIterdict:List[Tuple[_TK,_TV,_TK2,_TV2]] = []
+                    newIterable.append((inner[0], inner[1], outKey, outValue))        
+        newIterable:List[Tuple[_TK,_TV,_TK2,_TV2]] = []
         if joinType == JoinType.INNER:
             joinTypeFunc = innerJoin
         elif joinType == JoinType.LEFT:
             joinTypeFunc = leftJoin
         elif joinType == JoinType.RIGHT:
             joinTypeFunc = rightJoin
-        joinTypeFunc(self.Get(), iterdict, newIterdict)
-        joinKeys = list(map(lambda value: joinFuncByKey(value[0], value[1], value[2], value[3]), newIterdict))
-        joinValues = list(map(lambda value: joinFunc(value[0], value[1], value[2], value[3]), newIterdict))
+        joinTypeFunc(self.Get(), iterable, newIterable)
+        joinKeys = list(map(lambda value: joinFuncByKey(value[0], value[1], value[2], value[3]), newIterable))
+        joinValues = list(map(lambda value: joinFunc(value[0], value[1], value[2], value[3]), newIterable))
         joinItems = list(zip(joinKeys, joinValues))
         return dict(joinItems)        
       
     def OrderBy(self, *orderByFunc:Tuple[Callable[[_TK,_TV],_Union[Tuple[_TFV],_TFV]],_Desc]) -> Dict[_TK,_TV]:
         if orderByFunc == ():
             orderByFunc = ((lambda key, value: value, False))
-        iterdict = self.GetItems()
-        orderByFunc:list = list(reversed(orderByFunc))
+        iterable = self.GetItems()
+        orderByFunc = list(reversed(orderByFunc))
         for func, desc in orderByFunc:
-            iterdict = sorted(iterdict, key=lambda x: func(x[0],x[1]), reverse=desc)
-        return dict(iterdict)
+            iterable = sorted(iterable, key=lambda x: func(x[0], x[1]), reverse=desc)
+        return dict(iterable)
         
     def GroupBy(self, groupByFunc:Callable[[_TK,_TV],_Union[Tuple[_TFV],_TFV]]=lambda key, value: value) -> Dict[_Union[Tuple[_TFV],_TFV], Dict[_TK,_TV]]:
-        iterdict = EnumerableDictBase(self.OrderBy((groupByFunc, False))).GetItems()
-        iterdict = itertools.groupby(iterdict, lambda items: groupByFunc(items[0], items[1]))
-        return {keys : dict(group) for keys, group in iterdict}
+        iterable = EnumerableDictBase(self.OrderBy((groupByFunc, False))).GetItems()
+        iterable = itertools.groupby(iterable, lambda items: groupByFunc(items[0], items[1]))
+        return {keys : dict(group) for keys, group in iterable}
 
     def Reverse(self) -> Dict[_TK,_TV]:
             return dict(zip(reversed(self.GetKeys()),reversed(self.GetValues())))
         
-    def Zip(self, iterdict:Dict[_TK2,_TV2], 
+    def Zip(self, iterable:Dict[_TK2,_TV2], 
         zipFunc:Callable[[_TK,_TV,_TK2,_TV2],_TFV]=lambda inKey, inValue, outKey, outValue: (inValue, outValue),
         zipFuncByKey:Callable[[_TK,_TV,_TK2,_TV2],_TFK]=lambda inKey, inValue, outKey, outValue: inKey
     ) -> Dict[_TFK,_TFV]:
-        newIterdict = EnumerableDictBase(dict(zip(self.GetKeys(),list(zip(self.GetValues(), EnumerableDictBase(iterdict).GetItems())))))
-        return newIterdict.Select(lambda key, value: zipFunc(key, value[0], value[1][0], value[1][1]), lambda key, value: zipFuncByKey(key, value[0], value[1][0], value[1][1]))
+        newIterable = EnumerableDictBase(dict(zip(self.GetKeys(),list(zip(self.GetValues(), EnumerableDictBase(iterable).GetItems())))))
+        return newIterable.Select(lambda key, value: zipFunc(key, value[0], value[1][0], value[1][1]), lambda key, value: zipFuncByKey(key, value[0], value[1][0], value[1][1]))
 
 
 
@@ -176,7 +180,7 @@ class EnumerableDictBase(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
 
 
 
-    def Any(self, conditionFunc:Callable[[_TK,_TV],bool]=lambda key, value: True) -> bool:
+    def Any(self, conditionFunc:Callable[[_TK,_TV],bool]=lambda key, value: value) -> bool:
         result = False
         for key, value in self.GetItems():
             if conditionFunc(key, value):
@@ -184,7 +188,7 @@ class EnumerableDictBase(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
                 break
         return result
     
-    def All(self, conditionFunc:Callable[[_TK,_TV],bool]=lambda key, value: True) -> bool:
+    def All(self, conditionFunc:Callable[[_TK,_TV],bool]=lambda key, value: value) -> bool:
         result = True
         for key, value in self.GetItems():
             if not conditionFunc(key, value):
@@ -192,12 +196,12 @@ class EnumerableDictBase(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
                 break
         return result
     
-    def SequenceEqual(self, iterdict:Dict[_TK2,_TV2]) -> bool:
-        if self.Lenght() != len(iterdict):
+    def SequenceEqual(self, iterable:Dict[_TK2,_TV2]) -> bool:
+        if self.Lenght() != len(iterable):
             return False
         for key, value in self.GetItems():
-            if key in iterdict.keys():
-                if not iterdict[key] == value:
+            if key in iterable.keys():
+                if not iterable[key] == value:
                     return False
             else:
                 return False
@@ -268,20 +272,20 @@ class EnumerableDictBase(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
         else:
             raise KeyError(key)
 
-    def Concat(self, *iterdict:Dict[_TK2,_TV2]):
-        for i in iterdict:
+    def Concat(self, *iterable:Dict[_TK2,_TV2]):
+        for i in iterable:
             self.Get().update(i)
 
-    def Union(self, *iterdict:Dict[_TK2,_TV2]):
-        if not iterdict in [(),[]]:
-            iterdict:list = list(iterdict)
-            newIterdict = EnumerableDictBase()
-            filter = dict(self.Where(lambda k, v: v in iterdict[0].values() and k in iterdict[0].keys()))
-            EnumerableDictBase(filter).Loop(lambda k, v: newIterdict.Add(k, v))
-            iterdict.pop(0)
+    def Union(self, *iterable:Dict[_TK2,_TV2]):
+        if not iterable in [(),[]]:
+            iterable:list = list(iterable)
+            newIterable = EnumerableDictBase()
+            filter = dict(self.Where(lambda k, v: v in iterable[0].values() and k in iterable[0].keys()))
+            EnumerableDictBase(filter).Loop(lambda k, v: newIterable.Add(k, v))
+            iterable.pop(0)
             self.Clear()
-            self.Concat(newIterdict.Get())
-            self.Union(*iterdict)
+            self.Concat(newIterable.Get())
+            self.Union(*iterable)
 
     def Delete(self, *key:_TK):
         for k in key:
@@ -319,51 +323,56 @@ class EnumerableDictBase(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
 
 
     def IsEmpty(self) -> bool:
-        return self.Get() in [[],{},None]
+        return self.Get() in [[],{}]
     
     def ContainsByKey(self, *key:_TK) -> bool:
-        iterdict = self.GetKeys()
+        iterable = self.GetKeys()
         for k in key:
-            if not k in iterdict:
+            if not k in iterable:
                 return False
         return True
     
     def Contains(self, *value:_TV) -> bool:
-        iterdict = self.GetValues()
+        iterable = self.GetValues()
         for v in value:
-            if not v in iterdict:
+            if not v in iterable:
                 return False
         return True
 
 
 
     def __neg__(self) -> Dict[_TK,_TV]:
-        newIterdict = EnumerableDictBase(self.Copy())
-        newIterdict.Reverse()
-        return newIterdict.Get()
+        newIterable = EnumerableDictBase(self.Copy())
+        return newIterable.Reverse()
     
-    def __add__(self, iterdict:Dict[_TK2,_TV2]) -> Dict[_Union[_TK,_TK2],_Union[_TV,_TV2]]:
-        return EnumerableDictBase(self.Copy()).Concat(iterdict)
+    def __add__(self, iterable:Dict[_TK2,_TV2]) -> Dict[_Union[_TK,_TK2],_Union[_TV,_TV2]]:
+        newIterable = EnumerableDictBase(self.Copy())
+        newIterable.Concat(iterable)
+        return newIterable.Get()
+
+    def __iadd__(self, iterable:Dict[_TK2,_TV2]) -> Self:
+        self.Concat(iterable)
+        return self
     
-    def __iadd__(self, iterdict:Dict[_TK2,_TV2]):
-        self.Concat(iterdict)
+    def __sub__(self, iterable:Dict[_TK2,_TV2]) -> Dict[_Union[_TK,_TK2],_Union[_TV,_TV2]]:
+        newIterable = EnumerableDictBase(self.Copy())
+        newIterable.Union(iterable)
+        return newIterable.Get()
     
-    def __sub__(self, iterdict:Dict[_TK2,_TV2]) -> Dict[_Union[_TK,_TK2],_Union[_TV,_TV2]]:
-        return EnumerableDictBase(self.Copy()).Union(iterdict)
-    
-    def __isub__(self, iterdict:Dict[_TK2,_TV2]):
-        self.Union(iterdict)
+    def __isub__(self, iterable:Dict[_TK2,_TV2]) -> Self:
+        self.Union(iterable)
+        return self
 
     
 
-    def __eq__(self, iterdict:Dict[_TK2,_TV2]) -> bool:
-        return self.SequenceEqual(iterdict)
+    def __eq__(self, iterable:Dict[_TK2,_TV2]) -> bool:
+        return self.SequenceEqual(iterable)
 
-    def __ne__(self, iterdict:Dict[_TK2,_TV2]) -> bool:
-        return not self.SequenceEqual(iterdict)
+    def __ne__(self, iterable:Dict[_TK2,_TV2]) -> bool:
+        return not self.SequenceEqual(iterable)
     
     def __contains__(self, value:_Value) -> bool:
-        return value in self.Get()
+        return self.Contains(value)
 
 
 
@@ -372,10 +381,13 @@ class EnumerableDictBase(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
     
     def __len__(self) -> int:
         return self.Lenght()
+    
+    def __str__(self) -> str:
+        return "{}({})".format(self.__class__.__name__, str(self.iterable))
 
 
 
-    def __iter__(self) -> Iterable[Tuple[int,_TV]]:
+    def __iter__(self) -> Iterable[Tuple[_TK,_TV]]:
         return iter(self.GetItems())
     
     def __getitem__(self, key:_TK) -> _TV:
@@ -392,4 +404,4 @@ class EnumerableDictBase(Iterable[Tuple[_TK,_TV]],Generic[_TK,_TV]):
 
 
 
-__all__ = ["EnumerableDictBase"]
+__all__ = ["AbstractEnumerableBase","EnumerableDictBase"]

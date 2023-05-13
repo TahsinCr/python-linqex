@@ -1,7 +1,8 @@
 from linqex._typing import *
-from linqex.linq.iterdict import EnumerableDict
-from linqex.linq.iterlist import EnumerableList
-from linqex.linq.iteritem import EnumerableItem
+from linqex.abstract.iterable import AbstractEnumerable
+from linqex.linq.iterdict import EnumerableDict, EnumerableDictBase
+from linqex.linq.iterlist import EnumerableList, EnumerableListBase
+from linqex.linq.iteritem import EnumerableItem, EnumerableItemBase
 
 from typing import Dict, List, Union, Generic
 
@@ -16,7 +17,7 @@ class Enumerable(Generic[_TK,_TV]):
         elif isinstance(iterable, dict):
             return cls.Dict(iterable)
         else:
-            raise TypeError()
+            raise TypeError("Must be list or dict, not {}".format(str(type(iterable))[8,-2]))
 
     @classmethod
     def Item(cls, iteritem:List[_TV]=None) -> EnumerableItem[_TV]:
@@ -37,4 +38,4 @@ class Enumerable(Generic[_TK,_TV]):
         return EnumerableDict(iterdict)
 
 
-__all__ = ["Enumerable"]
+__all__ = ["AbstractEnumerable", "EnumerableList", "EnumerableItem", "EnumerableDict", "Enumerable"]

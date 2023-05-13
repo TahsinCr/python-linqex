@@ -1,14 +1,15 @@
 from linqex._typing import *
+from linqex.abstract.iterable import AbstractEnumerable
 from linqex.build.iterlistbase import EnumerableListBase
 
-from typing import Dict, List, Callable, Union as _Union, NoReturn, Optional, Tuple, Type, Generic, overload
+from typing import Dict, List, Callable, Union as _Union, NoReturn, Optional, Tuple, Type, Generic, overload, Self
 from collections.abc import Iterable
 
-def EnumerableListCatch(enumerableList:"EnumerableList", iterlist:Optional[List[_TV]], *keyHistoryAdd:_Key, oneValue:bool=False) -> Optional["EnumerableList[_TV]"]:
-    if iterlist is None:
+def EnumerableListCatch(enumerableList:"EnumerableList", iterable:Optional[List[_TV]], *keyHistoryAdd:_Key, oneValue:bool=False) -> Optional["EnumerableList[_TV]"]:
+    if iterable is None:
         return None
     else:
-        newEnumerableList = EnumerableList(iterlist)
+        newEnumerableList = EnumerableList(iterable)
         newEnumerableList._main = enumerableList._main
         newEnumerableList._orderby = enumerableList._orderby
         newEnumerableList.keyHistory = enumerableList.keyHistory.copy()
@@ -29,115 +30,115 @@ def EnumerableListToValue(enumerableListOrValue:_Union["EnumerableList[_TV2]",_T
     else:
         return enumerableListOrValue
 
-class EnumerableList(Iterable[_TV],Generic[_TV]):
+class EnumerableList(AbstractEnumerable, Iterable[_TV], Generic[_TV]):
     
-    def __init__(self, iterlist:List[_TV]=None):
-        self.iterlist:List[_TV] = EnumerableListBase(EnumerableListToValue(iterlist)).Get()
+    def __init__(self, iterable:List[_TV]=None):
+        self.iterable:List[_TV] = EnumerableListBase(EnumerableListToValue(iterable)).Get()
         self.keyHistory:list = list()
         self._main:EnumerableList = self
         self._orderby:list = list()
         self._oneValue:bool = False
 
-    def __call__(self, iterlist:List[_TV]=None):
-        self.__init__(iterlist)
+    def __call__(self, iterable:List[_TV]=None):
+        self.__init__(iterable)
 
     def Get(self, *key:int) -> _Union["EnumerableList[_TV]",_TV]:
-        iterlist = EnumerableListBase(self.iterlist).Get(*key)
-        if isinstance(iterlist,list):
-            return EnumerableListCatch(self, iterlist, key)
+        iterable = EnumerableListBase(self.iterable).Get(*key)
+        if isinstance(iterable,list):
+            return EnumerableListCatch(self, iterable, key)
         else:
-            return iterlist
+            return iterable
     
     def GetKey(self, value:_TV) -> int:
-        return EnumerableListBase(self.iterlist).GetKey(EnumerableListToValue(value))
+        return EnumerableListBase(self.iterable).GetKey(EnumerableListToValue(value))
     
     def GetKeys(self) -> "EnumerableList[int]":
-        return EnumerableListCatch(self,EnumerableListBase(self.iterlist).GetKeys())
+        return EnumerableListCatch(self,EnumerableListBase(self.iterable).GetKeys())
     
     def GetValues(self) -> "EnumerableList[_TV]":
-        return EnumerableListCatch(self,EnumerableListBase(self.iterlist).GetValues())
+        return EnumerableListCatch(self,EnumerableListBase(self.iterable).GetValues())
     
     def GetItems(self) -> "EnumerableList[Tuple[int,_TV]]":
-        return EnumerableListCatch(self,EnumerableListBase(self.iterlist).GetItems())
+        return EnumerableListCatch(self,EnumerableListBase(self.iterable).GetItems())
     
     def Copy(self) -> "EnumerableList[_TV]":
-        return EnumerableList(EnumerableListBase(self.iterlist).Copy())
+        return EnumerableList(EnumerableListBase(self.iterable).Copy())
 
 
 
     def Take(self, count:int) -> "EnumerableList[_TV]":
-        return EnumerableListCatch(self,EnumerableListBase(self.iterlist).Take(count))
+        return EnumerableListCatch(self,EnumerableListBase(self.iterable).Take(count))
     
     def TakeLast(self, count:int) -> "EnumerableList[_TV]":
-        return EnumerableListCatch(self,EnumerableListBase(self.iterlist).TakeLast(count))
+        return EnumerableListCatch(self,EnumerableListBase(self.iterable).TakeLast(count))
     
     def Skip(self, count:int) -> "EnumerableList[_TV]":
-        return EnumerableListCatch(self,EnumerableListBase(self.iterlist).Skip(count))
+        return EnumerableListCatch(self,EnumerableListBase(self.iterable).Skip(count))
     
     def SkipLast(self, count:int) -> "EnumerableList[_TV]":
-        return EnumerableListCatch(self,EnumerableListBase(self.iterlist).SkipLast(count))
+        return EnumerableListCatch(self,EnumerableListBase(self.iterable).SkipLast(count))
     
     def Select(self, selectFunc:Callable[[_TV],_TFV]=lambda value: value) -> "EnumerableList[_TFV]":
-        return EnumerableListCatch(self,EnumerableListBase(self.iterlist).Select(selectFunc))
+        return EnumerableListCatch(self,EnumerableListBase(self.iterable).Select(selectFunc))
     
     def Distinct(self, distinctFunc:Callable[[_TV],_TFV]=lambda value: value) -> "EnumerableList[_TV]":
-        return EnumerableListCatch(self,EnumerableListBase(self.iterlist).Distinct(distinctFunc))
+        return EnumerableListCatch(self,EnumerableListBase(self.iterable).Distinct(distinctFunc))
     
     def Except(self, exceptFunc:Callable[[_TV],_TFV]=lambda value: value, *value:_TV) -> "EnumerableList[_TV]":
-        return EnumerableListCatch(self,EnumerableListBase(self.iterlist).Except(exceptFunc, *map(EnumerableListToValue, value)))
+        return EnumerableListCatch(self,EnumerableListBase(self.iterable).Except(exceptFunc, *map(EnumerableListToValue, value)))
 
-    def Join(self, iterlist: List[_TV2], 
+    def Join(self, iterable: List[_TV2], 
         innerFunc:Callable[[_TV],_TFV]=lambda value: value, 
         outerFunc:Callable[[_TV2],_TFV]=lambda value: value, 
         joinFunc:Callable[[_TV,_TV2],_TFV2]=lambda inValue, outValue: (inValue, outValue),
         joinType:JoinType=JoinType.INNER
     ) -> "EnumerableList[_TFV2]":
-        return EnumerableList(EnumerableListBase(self.iterlist).Join(EnumerableListToValue(iterlist), innerFunc, outerFunc, joinFunc, joinType))
+        return EnumerableList(EnumerableListBase(self.iterable).Join(EnumerableListToValue(iterable), innerFunc, outerFunc, joinFunc, joinType))
       
-    def OrderBy(self, orderByFunc:Callable[[_TV],_Union[Tuple[_TFV],_TFV]], desc:bool=False) -> "EnumerableList[_TV]":
+    def OrderBy(self, orderByFunc:Callable[[_TV],_Union[Tuple[_TFV],_TFV]]=lambda value: value, desc:bool=False) -> "EnumerableList[_TV]":
         self._orderby.clear()
         self._orderby.append((orderByFunc, desc))
-        return EnumerableListCatch(self,EnumerableListBase(self.iterlist).OrderBy((orderByFunc, desc)))
+        return EnumerableListCatch(self,EnumerableListBase(self.iterable).OrderBy((orderByFunc, desc)))
 
-    def ThenBy(self, orderByFunc:Callable[[_TV],_Union[Tuple[_TFV],_TFV]], desc:bool=False) -> "EnumerableList[_TV]":
+    def ThenBy(self, orderByFunc:Callable[[_TV],_Union[Tuple[_TFV],_TFV]]=lambda value: value, desc:bool=False) -> "EnumerableList[_TV]":
         self._orderby.append((orderByFunc, desc))
-        return EnumerableListCatch(self,EnumerableListBase(self.iterlist).OrderBy(*self._orderby))
+        return EnumerableListCatch(self,EnumerableListBase(self.iterable).OrderBy(*self._orderby))
         
     def GroupBy(self, groupByFunc:Callable[[_TV],_Union[Tuple[_TFV],_TFV]]=lambda value: value) -> "EnumerableList[Tuple[_Union[Tuple[_TFV],_TFV], List[_TV]]]":
-        return EnumerableList(EnumerableListBase(self.iterlist).GroupBy(groupByFunc))
+        return EnumerableList(EnumerableListBase(self.iterable).GroupBy(groupByFunc))
 
     def Reverse(self) -> "EnumerableList[_TV]":
-        return EnumerableListCatch(self,EnumerableListBase(self.iterlist).Reverse())
+        return EnumerableListCatch(self,EnumerableListBase(self.iterable).Reverse())
         
-    def Zip(self, iterlist:List[_TV2], zipFunc:Callable[[_TV,_TV2],_TFV]=lambda inValue, outValue: (inValue, outValue)) -> "EnumerableList[_TFV]":
-        return EnumerableList(EnumerableListBase(self.iterlist).Zip(EnumerableListToValue(iterlist), zipFunc))
+    def Zip(self, iterable:List[_TV2], zipFunc:Callable[[_TV,_TV2],_TFV]=lambda inValue, outValue: (inValue, outValue)) -> "EnumerableList[_TFV]":
+        return EnumerableList(EnumerableListBase(self.iterable).Zip(EnumerableListToValue(iterable), zipFunc))
 
 
 
     def Where(self, conditionFunc:Callable[[_TV],bool]=lambda value: True) -> "EnumerableList[_TV]":
-        items = dict(EnumerableListBase(self.iterlist).Where(conditionFunc))
+        items = dict(EnumerableListBase(self.iterable).Where(conditionFunc))
         return EnumerableListCatch(self, list(items.values()), list(items.keys()))
     
     def OfType(self, *type:Type) -> "EnumerableList[_TV]":
-        items = dict(EnumerableListBase(self.iterlist).OfType(*type))
+        items = dict(EnumerableListBase(self.iterable).OfType(*type))
         return EnumerableListCatch(self, list(items.values()), list(items.keys()))
     
     def First(self, conditionFunc:Callable[[_TV],bool]=lambda value: True) -> Optional["EnumerableList[_TV]"]:
-        firstValue = EnumerableListBase(self.iterlist).First(conditionFunc)
+        firstValue = EnumerableListBase(self.iterable).First(conditionFunc)
         if firstValue is None:
             return None
         else:
             return EnumerableListCatch(self, [firstValue[1]], firstValue[0], oneValue=True)
     
     def Last(self, conditionFunc:Callable[[_TV],bool]=lambda value: True) -> Optional["EnumerableList[_TV]"]:
-        lastValue = EnumerableListBase(self.iterlist).Last(conditionFunc)
+        lastValue = EnumerableListBase(self.iterable).Last(conditionFunc)
         if lastValue is None:
             return None
         else:
             return EnumerableListCatch(self, [lastValue[1]], lastValue[0], oneValue=True)
         
     def Single(self, conditionFunc:Callable[[_TV],bool]=lambda value: True) -> Optional["EnumerableList[_TV]"]:
-        singleValue = EnumerableListBase(self.iterlist).Single(conditionFunc)
+        singleValue = EnumerableListBase(self.iterable).Single(conditionFunc)
         if singleValue is None:
             return None
         else:
@@ -145,51 +146,51 @@ class EnumerableList(Iterable[_TV],Generic[_TV]):
 
 
 
-    def Any(self, conditionFunc:Callable[[_TV],bool]=lambda value: True) -> bool:
-        return EnumerableListBase(self.iterlist).Any(conditionFunc)
+    def Any(self, conditionFunc:Callable[[_TV],bool]=lambda value: value) -> bool:
+        return EnumerableListBase(self.iterable).Any(conditionFunc)
     
-    def All(self, conditionFunc:Callable[[_TV],bool]=lambda value: True) -> bool:
-        return EnumerableListBase(self.iterlist).All(conditionFunc)
+    def All(self, conditionFunc:Callable[[_TV],bool]=lambda value: value) -> bool:
+        return EnumerableListBase(self.iterable).All(conditionFunc)
     
-    def SequenceEqual(self, iterlist:List[_TV2]) -> bool:
-        return EnumerableListBase(self.iterlist).SequenceEqual(EnumerableListToValue(iterlist))
+    def SequenceEqual(self, iterable:List[_TV2]) -> bool:
+        return EnumerableListBase(self.iterable).SequenceEqual(EnumerableListToValue(iterable))
 
 
 
     def Accumulate(self, accumulateFunc:Callable[[_TV,_TV],_TFV]=lambda temp, nextValue: temp + nextValue) -> "EnumerableList[_TFV]":
-        return EnumerableList(EnumerableListBase(self.iterlist).Accumulate(accumulateFunc))
+        return EnumerableList(EnumerableListBase(self.iterable).Accumulate(accumulateFunc))
 
     def Aggregate(self, aggregateFunc:Callable[[_TV,_TV],_TFV]=lambda temp, nextValue: temp + nextValue) -> _TFV:
-        return EnumerableListBase(self.iterlist).Aggregate(aggregateFunc)
+        return EnumerableListBase(self.iterable).Aggregate(aggregateFunc)
 
 
 
     def Count(self, value:_TV) -> int:
-        return EnumerableListBase(self.iterlist).Count(value)
+        return EnumerableListBase(self.iterable).Count(value)
 
     @property
     def Lenght(self) -> int:
-        return EnumerableListBase(self.iterlist).Lenght()
+        return EnumerableListBase(self.iterable).Lenght()
     
     def Sum(self) -> Optional[_TV]:
-        return EnumerableListBase(self.iterlist).Sum()
+        return EnumerableListBase(self.iterable).Sum()
         
     def Avg(self) -> Optional[_TV]:
-        return EnumerableListBase(self.iterlist).Avg()
+        return EnumerableListBase(self.iterable).Avg()
         
     def Max(self) -> Optional[_TV]:
-        return EnumerableListBase(self.iterlist).Max()
+        return EnumerableListBase(self.iterable).Max()
         
     def Min(self) -> Optional[_TV]:
-        return EnumerableListBase(self.iterlist).Min()
+        return EnumerableListBase(self.iterable).Min()
 
     @overload
-    def Set(): ...
+    def Set(self): ...
     @overload
     def Set(self, value:_Value): ...
     def Set(self, value=...):
         if value is ...:
-            self.Set(self.iterlist)
+            self.Set(self.iterable)
         else:
             value = EnumerableListToValue(value)
             if len(self.keyHistory) == 0:
@@ -205,25 +206,25 @@ class EnumerableList(Iterable[_TV],Generic[_TV]):
                 else:
                     key = self.ToKey
                 self._main.Get(*keyHistory).Update(key, value)
-                self.iterlist = value
+                self.iterable = value
 
     def Add(self, value:_Value):
-        EnumerableListBase(self.iterlist).Add(EnumerableListToValue(value))
+        EnumerableListBase(self.iterable).Add(EnumerableListToValue(value))
 
     def Prepend(self, value:_Value):
-        EnumerableListBase(self.iterlist).Prepend(EnumerableListToValue(value))
+        EnumerableListBase(self.iterable).Prepend(EnumerableListToValue(value))
 
     def Insert(self, key:int, value:_Value):
-        EnumerableListBase(self.iterlist).Insert(key, EnumerableListToValue(value))
+        EnumerableListBase(self.iterable).Insert(key, EnumerableListToValue(value))
 
     def Update(self, key:int, value:_Value):
-        EnumerableListBase(self.iterlist).Update(key, EnumerableListToValue(value))
+        EnumerableListBase(self.iterable).Update(key, EnumerableListToValue(value))
 
-    def Concat(self, *iterlist:List[_TV2]):
-        EnumerableListBase(self.iterlist).Concat(*map(EnumerableListToValue, iterlist))
+    def Concat(self, *iterable:List[_TV2]):
+        EnumerableListBase(self.iterable).Concat(*map(EnumerableListToValue, iterable))
 
-    def Union(self, *iterlist:List[_TV2]):
-        EnumerableListBase(self.iterlist).Union(*map(EnumerableListToValue, iterlist))
+    def Union(self, *iterable:List[_TV2]):
+        EnumerableListBase(self.iterable).Union(*map(EnumerableListToValue, iterable))
 
     @overload
     def Delete(self): ...
@@ -237,21 +238,21 @@ class EnumerableList(Iterable[_TV],Generic[_TV]):
                 key = [self.ToKey]
             self._main.Get(*filter(lambda k: not isinstance(k, (list,tuple)),self.keyHistory[:len(self.keyHistory)-1])).Delete(*key)
         else:
-            EnumerableListBase(self.iterlist).Delete(*key)
+            EnumerableListBase(self.iterable).Delete(*key)
 
     def Remove(self, *value:_TV):
-        EnumerableListBase(self.iterlist).Remove(*map(EnumerableListToValue, value))
+        EnumerableListBase(self.iterable).Remove(*map(EnumerableListToValue, value))
 
     def RemoveAll(self, *value:_TV):
-        EnumerableListBase(self.iterlist).RemoveAll(*map(EnumerableListToValue, value))
+        EnumerableListBase(self.iterable).RemoveAll(*map(EnumerableListToValue, value))
 
     def Clear(self):
-        EnumerableListBase(self.iterlist).Clear()
+        EnumerableListBase(self.iterable).Clear()
 
 
 
     def Loop(self, loopFunc:Callable[[_TV],NoReturn]=lambda value: print(value)):
-        EnumerableListBase(self.iterlist).Loop(loopFunc)
+        EnumerableListBase(self.iterable).Loop(loopFunc)
 
 
 
@@ -261,66 +262,74 @@ class EnumerableList(Iterable[_TV],Generic[_TV]):
             return None
         else:
             return self.keyHistory[-1]
+    
     @property
     def ToValue(self) -> _Union[List[_TV],_TV]:
-        if len(self.iterlist) == 1 and self._oneValue:
-            return self.GetValues().iterlist[0]
+        if len(self.iterable) == 1 and self._oneValue:
+            return self.GetValues().iterable[0]
         else:
             return self.ToList
+    
     @property
     def ToDict(self) -> Dict[int,_TV]:
-        return EnumerableListBase(self.iterlist).ToDict()
+        return EnumerableListBase(self.iterable).ToDict()
+    
     @property
     def ToList(self) -> List[_TV]:
-        return EnumerableListBase(self.iterlist).ToList()
+        return EnumerableListBase(self.iterable).ToList()
 
 
 
     @property
     def IsEmpty(self) -> bool:
-        return EnumerableListBase(self.iterlist).IsEmpty()
+        return EnumerableListBase(self.iterable).IsEmpty()
 
     def ContainsByKey(self, *key:int) -> bool:
-        return EnumerableListBase(self.iterlist).ContainsByKey(*key)
+        return EnumerableListBase(self.iterable).ContainsByKey(*key)
 
     def Contains(self, *value:_TV) -> bool:
-        return EnumerableListBase(self.iterlist).Contains(*map(EnumerableListToValue, value))
+        return EnumerableListBase(self.iterable).Contains(*map(EnumerableListToValue, value))
 
 
 
     def __neg__(self) -> "EnumerableList[_TV]":
-        return EnumerableList(EnumerableListBase(self.Copy().iterlist).__neg__())
+        return EnumerableList(EnumerableListBase(self.Copy().iterable).__neg__())
     
-    def __add__(self, iterlist:List[_TV]) -> "EnumerableList[_Union[_TV,_TV2]]":
-        return EnumerableList(EnumerableListBase(self.Copy().iterlist).__add__(EnumerableListToValue(iterlist)))
+    def __add__(self, iterable:List[_TV]) -> "EnumerableList[_Union[_TV,_TV2]]":
+        return EnumerableList(EnumerableListBase(self.Copy().iterable).__add__(EnumerableListToValue(iterable)))
     
-    def __iadd__(self, iterlist:List[_TV]):
-        EnumerableListBase(self.iterlist).__iadd__(EnumerableListToValue(iterlist))
+    def __iadd__(self, iterable:List[_TV]) -> Self:
+        EnumerableListBase(self.iterable).__iadd__(EnumerableListToValue(iterable))
+        return self
+
+    def __sub__(self, iterable:List[_TV]) -> "EnumerableList[_Union[_TV,_TV2]]":
+        return EnumerableList(EnumerableListBase(self.Copy().iterable).__sub__(EnumerableListToValue(iterable)))
     
-    def __sub__(self, iterlist:List[_TV]) -> "EnumerableList[_Union[_TV,_TV2]]":
-        return EnumerableList(EnumerableListBase(self.Copy().iterlist).__sub__(EnumerableListToValue(iterlist)))
-    
-    def __isub__(self, iterlist:List[_TV]):
-        EnumerableListBase(self.iterlist).__isub__(EnumerableListToValue(iterlist))
+    def __isub__(self, iterable:List[_TV]) -> Self:
+        EnumerableListBase(self.iterable).__isub__(EnumerableListToValue(iterable))
+        return self
 
     
 
-    def __eq__(self, iterlist:List[_TV]) -> bool:
-        return EnumerableListBase(self.iterlist).__eq__(EnumerableListToValue(iterlist))
+    def __eq__(self, iterable:List[_TV]) -> bool:
+        return EnumerableListBase(self.iterable).__eq__(EnumerableListToValue(iterable))
 
-    def __ne__(self, iterlist:List[_TV]) -> bool:
-        return EnumerableListBase(self.iterlist).__ne__(EnumerableListToValue(iterlist))
+    def __ne__(self, iterable:List[_TV]) -> bool:
+        return EnumerableListBase(self.iterable).__ne__(EnumerableListToValue(iterable))
     
     def __contains__(self, value:_Value) -> bool:
-        return EnumerableListBase(self.iterlist).__contains__(EnumerableListToValue(value))
+        return EnumerableListBase(self.iterable).__contains__(EnumerableListToValue(value))
 
 
 
     def __bool__(self) -> bool:
-        return EnumerableListBase(self.iterlist).__bool__()
+        return EnumerableListBase(self.iterable).__bool__()
     
     def __len__(self) -> int:
-        return EnumerableListBase(self.iterlist).__len__()
+        return EnumerableListBase(self.iterable).__len__()
+    
+    def __str__(self) -> str:
+        return "{}({})".format(self.__class__.__name__, str(self.iterable))
 
 
 
@@ -328,23 +337,23 @@ class EnumerableList(Iterable[_TV],Generic[_TV]):
         return EnumerableListBase(self.GetValues().ToValue).__iter__()
     
     def __getitem__(self, key:int) -> _TV:
-        return EnumerableListBase(self.iterlist).__getitem__(key)
+        return EnumerableListBase(self.iterable).__getitem__(key)
     
     def __setitem__(self, key:int, value:_Value):
-        return EnumerableListBase(self.iterlist).__setitem__(key, EnumerableListToValue(value))
+        return EnumerableListBase(self.iterable).__setitem__(key, EnumerableListToValue(value))
 
     def __delitem__(self, key:int):
-        return EnumerableListBase(self.iterlist).__delitem__(key)
+        return EnumerableListBase(self.iterable).__delitem__(key)
 
 
 
     @staticmethod
     def Range(start:int, stop:int, step:int=1) -> "EnumerableList[int]":
-        return EnumerableList(EnumerableListBase.Range(start, stop, step).Get())
+        return EnumerableList(EnumerableListBase.Range(start, stop, step))
     @staticmethod
-    def Repeat(value:_Value, count:int) -> "EnumerableList[int]":
-        return EnumerableList(EnumerableListBase.Repeat(value, count).Get())
+    def Repeat(value:_TV, count:int) -> "EnumerableList[_TV]":
+        return EnumerableList(EnumerableListBase.Repeat(value, count))
 
 
 
-__all__ = ["EnumerableList"]
+__all__ = ["AbstractEnumerable", "EnumerableList"]
