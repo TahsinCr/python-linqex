@@ -1,10 +1,10 @@
 from linqex._typing import *
 from linqex.abstract.iterable import AbstractEnumerable
-from linqex.build.iterdictbase import EnumerableDictBase
+from linqex.base.iterdictbase import EnumerableDictBase
 from linqex.linq.iterlist import EnumerableList, EnumerableListCatch
 
 from typing import Dict, List, Callable, Union as _Union, NoReturn, Optional, Tuple, Type, Generic, overload, Self
-from collections.abc import Iterable
+from collections.abc import Iterator
 
 def EnumerableDictCatch(enumerableDict:"EnumerableDict", iterable:Optional[Dict[_TK,_TV]], *keyHistoryAdd:_Key, oneValue:bool=False) -> Optional["EnumerableDict[_TK,_TV]"]:
     if iterable is None:
@@ -30,7 +30,7 @@ def EnumerableDictToValue(enumerableDictOrValue:_Union["EnumerableDict[_TK,_TV]"
     else:
         return enumerableDictOrValue
 
-class EnumerableDict(AbstractEnumerable, Iterable[Tuple[_TK,_TV]], Generic[_TK,_TV]):
+class EnumerableDict(AbstractEnumerable, Iterator[Tuple[_TK,_TV]], Generic[_TK,_TV]):
     
     def __init__(self, iterable:Dict[_TK,_TV]=None):
         self.iterable:Dict[_TK,_TV] = EnumerableDictBase(EnumerableDictToValue(iterable)).Get()
@@ -269,7 +269,7 @@ class EnumerableDict(AbstractEnumerable, Iterable[Tuple[_TK,_TV]], Generic[_TK,_
             return self.keyHistory[-1]
     
     @property
-    def ToValue(self) -> _Union[Dict[_TK,_TV],_TV]:
+    def ToValue(self) -> _TV:
         if len(self.iterable) == 1 and self._oneValue:
             return self.GetValues().iterable[0]
         else:
@@ -278,6 +278,10 @@ class EnumerableDict(AbstractEnumerable, Iterable[Tuple[_TK,_TV]], Generic[_TK,_
     @property
     def ToList(self) -> List[_TV]:
         return EnumerableDictBase(self.iterable).ToList()
+    
+    @property
+    def ToItem(self) -> List[Tuple[int,_TV]]:
+        return EnumerableDictBase(self.iterable).ToItem()
     
     @property
     def ToDict(self) -> Dict[_TK,_TV]:
@@ -338,8 +342,10 @@ class EnumerableDict(AbstractEnumerable, Iterable[Tuple[_TK,_TV]], Generic[_TK,_
 
 
 
-    def __iter__(self) -> Iterable[Tuple[_TK,_TV]]:
+    def __iter__(self) -> Iterator[Tuple[_TK,_TV]]:
         return EnumerableDictBase(self.GetItems().ToValue).__iter__()
+    
+    def __next__(self): ...
     
     def __getitem__(self, key:_TK) -> _TV:
         return EnumerableDictBase(self.iterable).__getitem__(key)

@@ -3,10 +3,10 @@ from linqex.abstract.iterablebase import AbstractEnumerableBase
 
 from typing import Dict, List, Callable, Union as _Union, NoReturn, Optional, Tuple, Type, Generic, Self
 from numbers import Number
-from collections.abc import Iterable
+from collections.abc import Iterator
 import itertools
 
-class EnumerableListBase(AbstractEnumerableBase, Iterable[_TV], Generic[_TV]):
+class EnumerableListBase(AbstractEnumerableBase, Iterator[_TV], Generic[_TV]):
     
     def __init__(self, iterable:Optional[List[_TV]]=None):
         if iterable is None:
@@ -70,7 +70,7 @@ class EnumerableListBase(AbstractEnumerableBase, Iterable[_TV], Generic[_TV]):
     
     def Except(self, exceptFunc:Callable[[_TV],_TFV]=lambda value: value, *value:_TV) -> List[_TV]:
         newIterable = EnumerableListBase()
-        for v in self.Get():
+        for v in self.GetValues():
             if not exceptFunc(v) in value:
                 newIterable.Add(v)
         return newIterable.Get()
@@ -301,6 +301,10 @@ class EnumerableListBase(AbstractEnumerableBase, Iterable[_TV], Generic[_TV]):
 
     def ToList(self) -> List[_TV]:
         return self.Get()
+    
+    def ToItem(self) -> List[Tuple[int,_TV]]:
+        return list(enumerate(self.iterable))
+    
 
 
 
@@ -369,8 +373,10 @@ class EnumerableListBase(AbstractEnumerableBase, Iterable[_TV], Generic[_TV]):
 
 
 
-    def __iter__(self) -> Iterable[_TV]:
+    def __iter__(self) -> Iterator[_TV]:
         return iter(self.GetValues())
+    
+    def __next__(self): ...
     
     def __getitem__(self, key:int) -> _TV:
         return self.Get(key)

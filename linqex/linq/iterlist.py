@@ -1,9 +1,9 @@
 from linqex._typing import *
 from linqex.abstract.iterable import AbstractEnumerable
-from linqex.build.iterlistbase import EnumerableListBase
+from linqex.base.iterlistbase import EnumerableListBase
 
 from typing import Dict, List, Callable, Union as _Union, NoReturn, Optional, Tuple, Type, Generic, overload, Self
-from collections.abc import Iterable
+from collections.abc import Iterator
 
 def EnumerableListCatch(enumerableList:"EnumerableList", iterable:Optional[List[_TV]], *keyHistoryAdd:_Key, oneValue:bool=False) -> Optional["EnumerableList[_TV]"]:
     if iterable is None:
@@ -30,7 +30,7 @@ def EnumerableListToValue(enumerableListOrValue:_Union["EnumerableList[_TV2]",_T
     else:
         return enumerableListOrValue
 
-class EnumerableList(AbstractEnumerable, Iterable[_TV], Generic[_TV]):
+class EnumerableList(AbstractEnumerable, Iterator[_TV], Generic[_TV]):
     
     def __init__(self, iterable:List[_TV]=None):
         self.iterable:List[_TV] = EnumerableListBase(EnumerableListToValue(iterable)).Get()
@@ -264,7 +264,7 @@ class EnumerableList(AbstractEnumerable, Iterable[_TV], Generic[_TV]):
             return self.keyHistory[-1]
     
     @property
-    def ToValue(self) -> _Union[List[_TV],_TV]:
+    def ToValue(self) -> _TV:
         if len(self.iterable) == 1 and self._oneValue:
             return self.GetValues().iterable[0]
         else:
@@ -278,6 +278,9 @@ class EnumerableList(AbstractEnumerable, Iterable[_TV], Generic[_TV]):
     def ToList(self) -> List[_TV]:
         return EnumerableListBase(self.iterable).ToList()
 
+    @property
+    def ToItem(self) -> List[Tuple[int,_TV]]:
+        return EnumerableListBase(self.iterable).ToItem()
 
 
     @property
@@ -333,8 +336,10 @@ class EnumerableList(AbstractEnumerable, Iterable[_TV], Generic[_TV]):
 
 
 
-    def __iter__(self) -> Iterable[Tuple[int,_TV]]:
+    def __iter__(self) -> Iterator[_TV]:
         return EnumerableListBase(self.GetValues().ToValue).__iter__()
+    
+    def __next__(self): ...
     
     def __getitem__(self, key:int) -> _TV:
         return EnumerableListBase(self.iterable).__getitem__(key)

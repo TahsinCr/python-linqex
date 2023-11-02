@@ -1,8 +1,8 @@
 from linqex._typing import *
 from linqex.abstract.iterablebase import AbstractEnumerableBase
-from linqex.build.iterdictbase import EnumerableDictBase
-from linqex.build.iterlistbase import EnumerableListBase
-from linqex.build.iteritembase import EnumerableItemBase
+from linqex.base.iterdictbase import EnumerableDictBase
+from linqex.base.iterlistbase import EnumerableListBase
+from linqex.base.iteritembase import EnumerableItemBase
 
 from typing import Dict, List, Union, Generic
 

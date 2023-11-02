@@ -3,10 +3,10 @@ from linqex.abstract.iterablebase import AbstractEnumerableBase
 
 from typing import Dict, List, Callable, Union as _Union, NoReturn, Optional, Tuple, Type, Generic, Self
 from numbers import Number
-from collections.abc import Iterable
+from collections.abc import Iterator
 import itertools
 
-class EnumerableDictBase(AbstractEnumerableBase, Iterable[Tuple[_TK,_TV]], Generic[_TK,_TV]):
+class EnumerableDictBase(AbstractEnumerableBase, Iterator[Tuple[_TK,_TV]], Generic[_TK,_TV]):
     
     def __init__(self, iterable:Optional[Dict[_TK,_TV]]=None):
         if iterable is None:
@@ -319,6 +319,9 @@ class EnumerableDictBase(AbstractEnumerableBase, Iterable[Tuple[_TK,_TV]], Gener
 
     def ToList(self) -> List[_TV]:
         return self.GetValues()
+    
+    def ToItem(self) -> List[Tuple[int,_TV]]:
+        return list(enumerate(self.GetValues()))
 
 
 
@@ -387,8 +390,10 @@ class EnumerableDictBase(AbstractEnumerableBase, Iterable[Tuple[_TK,_TV]], Gener
 
 
 
-    def __iter__(self) -> Iterable[Tuple[_TK,_TV]]:
+    def __iter__(self) -> Iterator[Tuple[_TK,_TV]]:
         return iter(self.GetItems())
+    
+    def __next__(self): ...
     
     def __getitem__(self, key:_TK) -> _TV:
         return self.Get(key)

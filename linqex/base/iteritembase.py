@@ -1,12 +1,12 @@
 from linqex._typing import *
 from linqex.abstract.iterablebase import AbstractEnumerableBase
-from linqex.build.iterlistbase import EnumerableListBase
+from linqex.base.iterlistbase import EnumerableListBase
 
 from typing import Dict, List, Callable, Union as _Union, NoReturn, Optional, Tuple, Type, Generic, Self
-from collections.abc import Iterable
+from collections.abc import Iterator
 import itertools
 
-class EnumerableItemBase(EnumerableListBase, Iterable[Tuple[int,_TV]], Generic[_TK,_TV]):
+class EnumerableItemBase(EnumerableListBase, Iterator[Tuple[int,_TV]], Generic[_TK,_TV]):
         
     def __init__(self, iterable:Optional[List[_TV]]=None):
         super().__init__(iterable)
@@ -59,7 +59,7 @@ class EnumerableItemBase(EnumerableListBase, Iterable[Tuple[int,_TV]], Generic[_
         newIterable = EnumerableItemBase()
         for k, v in self.GetItems():
             if not exceptFunc(k, v) in value:
-                newIterable.Add(k, v)
+                newIterable.Add(None, v)
         return newIterable.Get()
 
     def Join(self, iterable: List[_TV2], 
@@ -268,6 +268,9 @@ class EnumerableItemBase(EnumerableListBase, Iterable[Tuple[int,_TV]], Generic[_
     def ToList(self) -> List[_TV]:
         return super().ToList()
 
+    def ToItem(self) -> List[Tuple[int,_TV]]:
+        return list(enumerate(self.iterable))
+
 
 
     def IsEmpty(self) -> bool:
@@ -322,9 +325,11 @@ class EnumerableItemBase(EnumerableListBase, Iterable[Tuple[int,_TV]], Generic[_
 
 
 
-    def __iter__(self) -> Iterable[Tuple[int,_TV]]:
-        return super().__iter__()
+    def __iter__(self) -> Iterator[Tuple[int,_TV]]:
+        return iter(self.GetItems())
     
+    def __next__(self): ...
+
     def __getitem__(self, key:int) -> _TV:
         return super().__getitem__(key)
     

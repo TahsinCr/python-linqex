@@ -66,3 +66,14 @@ assert result10 == list(range(1,100,5)), "ToolsEdit - result10 is not equal to d
 # Generates a sequence that contains one repeated value.
 result11 = Enumerable.List().Repeat("testing",10).ToValue
 assert result11 == ["testing"] * 10, "ToolsEdit - result11 is not equal to desired value"
+
+
+
+# Returns converts Enumerable to list.
+result12 = customerListEnumerable.ToList
+assert result12 == customerList, "ToolsEdit - result12 is not equal to desired value"
+
+
+# Returns converts Enumerable to item.
+result13 = customerListEnumerable.ToItem 
+assert result13 == list(enumerate(customerList)), "ToolsEdit - result13 is not equal to desired value"

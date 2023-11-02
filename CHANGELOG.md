@@ -1,6 +1,15 @@
 # **Change Log**
 All notable changes to this project will be documented in this file.
 
+## **[1.6.1] - 02.11.2023**
+Added abstract classes. Minor bug fixes.
+### Added
+ * Added `ToItem` property in the `EnumerableList`, `EnumerableDict` and `EnumerableItem` class
+### Fixed
+ * Fixed minor bugs in magic methods of all classes.
+
+<br>
+
 ## **[1.6] - 14.05.2023**
 Added abstract classes. Minor bug fixes.
 ### Added

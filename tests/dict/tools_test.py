@@ -54,3 +54,14 @@ assert result8.ToValue == customerDict, "ToolsEdit - result8 is not equal to des
 # Returns length of iterable
 result9 = customerDictEnumerable.Lenght
 assert result9 == len(customerDict), "ToolsEdit - result9 is not equal to desired value"
+
+
+
+
+# Returns converts Enumerable to dict.
+result10 = customerDictEnumerable.ToDict
+assert result10 == customerDict, "ToolsEdit - result10 is not equal to desired value"
+
+# Returns converts Enumerable to item.
+result11 = customerDictEnumerable.ToItem 
+assert result11 == list(enumerate(customerDict.values())), "ToolsEdit - result11 is not equal to desired value"
