@@ -89,11 +89,10 @@ assert [customer._ToDict() for customer in result14] == [customer._ToDict() for 
 
 
 # Returns the iterable by removing the unwanted values from the iterable.
-result15 = customerItemEnumerable.Except(lambda key, customer: customer.age, 12, 22).ToList 
-new_customers:List[Customer] = []
-for customer in customerItem:
-    if not customer.age in [12,22]:
-        new_customers.append(customer)
+result15 = customerItemEnumerable.Except(customerItem[8], customerItem[9]).ToValue
+new_customers = customerItem.copy()
+new_customers.pop(9)
+new_customers.pop(8)
 assert [customer._ToDict() for customer in result15] == [customer._ToDict() for customer in new_customers], "FilterTest - result15 is not equal to desired value"
 
 

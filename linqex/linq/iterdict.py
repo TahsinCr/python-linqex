@@ -87,8 +87,11 @@ class EnumerableDict(AbstractEnumerable, Iterator[Tuple[_TK,_TV]], Generic[_TK,_
     def Distinct(self, distinctFunc:Callable[[_TK,_TV],_TFV]=lambda key, value: value) -> "EnumerableDict[_TK,_TV]":
         return EnumerableDictCatch(self,EnumerableDictBase(self.iterable).Distinct(distinctFunc))
     
-    def Except(self, exceptFunc:Callable[[_TK,_TV],_TFV]=lambda key, value: value, *value:_TV) -> "EnumerableDict[_TK,_TV]":
-        return EnumerableDictCatch(self,EnumerableDictBase(self.iterable).Except(exceptFunc, *map(EnumerableDictToValue, value)))
+    def Except(self, *value:_TV) -> "EnumerableDict[_TK,_TV]":
+        return EnumerableDictCatch(self,EnumerableDictBase(self.iterable).Except(*map(EnumerableDictToValue, value)))
+    
+    def ExceptKey(self, *key:_TK) -> "EnumerableDict[_TK,_TV]":
+        return EnumerableDictCatch(self,EnumerableDictBase(self.iterable).ExceptKey(*map(EnumerableDictToValue, key)))
 
     def Join(self, iterable: Dict[_TK2,_TV2], 
         innerFunc:Callable[[_TK,_TV],_TFV]=lambda key, value: value, 

@@ -85,8 +85,8 @@ class EnumerableItem(EnumerableList, Iterator[Tuple[int,_TV]], Generic[_TK,_TV])
     def Distinct(self, distinctFunc:Callable[[int,_TV],_TFV]=lambda key, value: value) -> "EnumerableItem[_TV]":
         return EnumerableItemCatch(self,EnumerableItemBase(self.iterable).Distinct(distinctFunc))
     
-    def Except(self, exceptFunc:Callable[[int,_TV],_TFV]=lambda key, value: value, *value:_TV) -> "EnumerableItem[_TV]":
-        return EnumerableItemCatch(self,EnumerableItemBase(self.iterable).Except(exceptFunc, *map(EnumerableItemToValue, value)))
+    def Except(self, *value:_TV) -> "EnumerableItem[_TV]":
+        return EnumerableItemCatch(self,EnumerableItemBase(self.iterable).Except(*map(EnumerableItemToValue, value)))
 
     def Join(self, iterable: List[_TV2], 
         innerFunc:Callable[[int,_TV],_TFV]=lambda key, value: value, 

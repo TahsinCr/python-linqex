@@ -89,11 +89,10 @@ assert [customer._ToDict() for customer in result14.values()] == [customer._ToDi
 
 
 # Returns the iterable by removing the unwanted values from the iterable.
-result15 = customerDictEnumerable.Except(lambda key, customer: customer.age, 12, 22).ToValue 
-new_customers = {}
-for key, customer in customerDict.items():
-    if not customer.age in [12,22]:
-        new_customers[key] = customer
+result15 = customerDictEnumerable.Except(customerDict[8], customerDict[9]).ToValue 
+new_customers = customerDict.copy()
+new_customers.pop(9)
+new_customers.pop(8)
 assert [customer._ToDict() for customer in result15.values()] == [customer._ToDict() for customer in new_customers.values()], "FilterTest - result15 is not equal to desired value"
 
 
@@ -162,5 +161,14 @@ assert result21 == {keys: dict(group) for keys, group in itertools.groupby(newCu
 
 
 # Loops the refreshable and returns a list of keys ​​that are the same as the given data types.
-result2 = customerDictEnumerable.OfTypeByKey(int).ToValue
-assert result2 == customerDict, "FilterTest - result2 is not equal to desired value"
+result22 = customerDictEnumerable.OfTypeByKey(int).ToValue
+assert result22 == customerDict, "FilterTest - result22 is not equal to desired value"
+
+
+
+# Returns the iterable by removing the unwanted key from the iterable.
+result23 = customerDictEnumerable.ExceptKey(8,9).ToValue 
+new_customers = customerDict.copy()
+new_customers.pop(9)
+new_customers.pop(8)
+assert [customer._ToDict() for customer in result23.values()] == [customer._ToDict() for customer in new_customers.values()], "FilterTest - result23 is not equal to desired value"

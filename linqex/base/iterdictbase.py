@@ -69,12 +69,11 @@ class EnumerableDictBase(AbstractEnumerableBase, Iterator[Tuple[_TK,_TV]], Gener
                 EnumerableDictBase(newIterable).Delete(key)
         return newIterable
     
-    def Except(self, exceptFunc:Callable[[_TK,_TV],_TFV]=lambda key, value: value, *value:_TV) -> Dict[_TK,_TV]:
-        newIterable = EnumerableDictBase()
-        for k, v in self.GetItems():
-            if not exceptFunc(k,v) in value:
-                newIterable.Add(k,v)
-        return newIterable.Get()
+    def Except(self, *value:_TV) -> Dict[_TK,_TV]:
+        return self.Where(lambda k, v: not v in value)
+    
+    def ExceptKey(self, *key:_TK) -> Dict[_TK,_TV]:
+        return self.Where(lambda k, v: not k in key)
 
     def Join(self, iterable: Dict[_TK2,_TV2], 
         innerFunc:Callable[[_TK,_TV],_TFV]=lambda key, value: value, 

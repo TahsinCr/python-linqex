@@ -68,12 +68,8 @@ class EnumerableListBase(AbstractEnumerableBase, Iterator[_TV], Generic[_TV]):
                 indexStep += 1
         return newIterable
     
-    def Except(self, exceptFunc:Callable[[_TV],_TFV]=lambda value: value, *value:_TV) -> List[_TV]:
-        newIterable = EnumerableListBase()
-        for v in self.GetValues():
-            if not exceptFunc(v) in value:
-                newIterable.Add(v)
-        return newIterable.Get()
+    def Except(self, *value:_TV) -> List[_TV]:
+        return list(zip(*self.Where(lambda v: not v in value)))[1]
 
     def Join(self, iterable: List[_TV2], 
         innerFunc:Callable[[_TV],_TFV]=lambda value: value, 
